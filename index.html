@@ -2,6 +2,21 @@
 <html lang="en">
 
 <head>
+
+
+  <!-- PWA Meta Tags -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#3367D6">
+
+<!-- iOS specific meta tags -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MMS Portfolio">
+<link rel="apple-touch-icon" href="/assets/images/icon-192.png">
+
+<!-- Android/Chrome meta tags -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1226,7 +1241,28 @@
 
 
 
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(registration => {
+          console.log('ServiceWorker registration successful');
+        })
+        .catch(err => {
+          console.log('ServiceWorker registration failed: ', err);
+        });
+    });
+  }
 
+  // Handle install prompt
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    console.log('PWA install prompt available');
+    // You can show your custom install button here
+  });
+</script>
   <!--
     - custom js link
   -->
