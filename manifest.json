@@ -7,7 +7,7 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
-  "orientation": "portrait-primary",
+
 "icons": [
     {
       "src": "windows11/SmallTile.scale-100.png",
@@ -460,3 +460,4 @@
   ],
   "splash_pages": null
 }
+
