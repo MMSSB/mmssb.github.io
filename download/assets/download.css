@@ -77,7 +77,7 @@ nav >ul >li:nth-of-type(5)>i{
 .container >.index-wrapper >.index-box> .icons-box > .icon{
     box-shadow: 0 0 15px #111;
     padding: 1rem .5rem;
-    border-radius: 3px;
+    border-radius: 1.5rem;
     display: flex;
     gap: .6rem;
 }
