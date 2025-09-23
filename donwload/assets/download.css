@@ -1,0 +1,265 @@
+        @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+
+*,*:before,*:after{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body{
+    font-family: 'Poppins', sans-serif;
+    background-color: #282a2c;
+}
+a{
+    text-decoration: none;
+    color: #67696b;
+}
+.container{
+    width: 100%;
+}
+/*NAV*/
+nav{
+    width: 100%;
+    background-color: #181a1c;
+    color: #67696b;
+    padding: 1rem .5rem;
+}
+nav >ul{
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+}
+nav >ul >li{
+    font-size: 20px;
+    cursor: pointer;
+    width: fit-content;
+}
+nav >ul >li a:hover{
+    color: #0084ff;
+}
+nav >ul >li:nth-of-type(4){
+    position: relative;
+}
+nav >ul >li:nth-of-type(4)>i{
+    position: absolute;
+    top: 50%;
+    transform: translateY(-55%);
+    left: 125px;
+}
+nav >ul >li:nth-of-type(5)>i{
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+/*INDEX*/
+
+.container >.index-wrapper{
+    background-color: #282a2c;
+    color: #f3f3f3;
+    padding: 1rem .5rem;
+}
+.container >.index-wrapper >.index-box>.index-caption{
+    margin: .5rem 0 1rem;
+}
+.container >.index-wrapper >.index-box>.index-caption>h1{
+    font-size: 25px;
+    font-weight: 100;
+}                    
+.container >.index-wrapper >.index-box>.index-caption>h5{
+    font-weight: 100;
+    font-size: 14px;
+}
+.container >.index-wrapper >.index-box> .icons-box{
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.container >.index-wrapper >.index-box> .icons-box > .icon{
+    box-shadow: 0 0 15px #111;
+    padding: 1rem .5rem;
+    border-radius: 3px;
+    display: flex;
+    gap: .6rem;
+}
+.container >.index-wrapper >.index-box> .icons-box > .icon:hover{
+    background-color: #181a1c;
+}
+.container >.index-wrapper >.index-box> .icons-box > .icon >.img-box{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+img{
+    width: 110px;
+    border-radius: 25px;
+}
+.container >.index-wrapper >.index-box> .icons-box > .icon > .info-box> h5{
+    font-size: 15px;
+    font-weight: 100;
+    line-height: 1.2;
+}
+.container >.index-wrapper >.index-box> .icons-box > .icon > .info-box> p{
+    font-size: 12px;
+    padding: .2rem 0;
+}
+.stars-box >i{
+    color: #181a1c;
+}
+/* all 5 stars rate*/
+.icon:nth-of-type(3) > .info-box> .stars-box>i,
+.icon:nth-of-type(5) > .info-box> .stars-box>i,
+.icon:nth-of-type(8) > .info-box> .stars-box>i,
+.icon:nth-of-type(9) > .info-box> .stars-box>i{
+    color: #feb904;
+}
+/*30 day fit rate*/
+.icon:nth-of-type(1) > .info-box> .stars-box>i:nth-of-type(1),
+.icon:nth-of-type(1) > .info-box> .stars-box>i:nth-of-type(2),
+.icon:nth-of-type(1) > .info-box> .stars-box>i:nth-of-type(3){
+    color: #feb904;
+}
+/*jellifish rate*/
+.icon:nth-of-type(6) > .info-box> .stars-box>i:nth-of-type(1),
+.icon:nth-of-type(6) > .info-box> .stars-box>i:nth-of-type(2),
+.icon:nth-of-type(6) > .info-box> .stars-box>i:nth-of-type(3){
+    color: #feb904;
+}
+/*5 health rate*/
+.icon:nth-of-type(2) > .info-box> .stars-box>i:nth-of-type(1),
+.icon:nth-of-type(2) > .info-box> .stars-box>i:nth-of-type(2),
+.icon:nth-of-type(2) > .info-box> .stars-box>i:nth-of-type(3),
+.icon:nth-of-type(2) > .info-box> .stars-box>i:nth-of-type(4){
+    color: #feb904;
+}
+/*sandstorm rate*/
+.icon:nth-of-type(4) > .info-box> .stars-box>i:nth-of-type(1),
+.icon:nth-of-type(4) > .info-box> .stars-box>i:nth-of-type(2),
+.icon:nth-of-type(4) > .info-box> .stars-box>i:nth-of-type(3),
+.icon:nth-of-type(4) > .info-box> .stars-box>i:nth-of-type(4){
+    color: #feb904;
+}
+/*qatar rate*/
+.icon:nth-of-type(7) > .info-box> .stars-box>i:nth-of-type(1),
+.icon:nth-of-type(7) > .info-box> .stars-box>i:nth-of-type(2),
+.icon:nth-of-type(7) > .info-box> .stars-box>i:nth-of-type(3),
+.icon:nth-of-type(7) > .info-box> .stars-box>i:nth-of-type(4){
+    color: #feb904;
+}
+
+button{
+    background-color: #181a1c;
+    border: none;
+    color: #f3f3f3;
+    padding: .4rem 1rem .6rem;
+    margin-top: .5rem;
+    border-radius: 10px 10px 5px 0;
+    box-shadow: 0 0 5px #67696b;
+    letter-spacing: .3px;
+    position: relative;
+    cursor: pointer;
+    transition: all .25s ease-out;
+}
+button:hover{
+    background-color: #0084ff;
+}
+button:after{
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 3px;
+    background-color: #0084ff;
+    border-radius: 0 0 5px 0px;
+    bottom: 0;
+    left: 0;
+}
+@media screen and (min-width:800px) {
+    nav{
+        padding: 5rem 7rem;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    nav >ul{
+        flex-direction: row;
+        gap: 1.5rem;
+        align-items: end;
+        position: absolute;
+        bottom: 1rem;
+        left: 7rem;
+        width: 80%;
+    }
+    nav >ul >li:nth-of-type(5){
+    }
+    nav >ul >li:nth-of-type(5)>i{
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        right: 0;
+    }
+    .container >.index-wrapper{
+        padding: 2rem 7rem 5rem;
+    }
+    .container >.index-wrapper >.index-box> .icons-box{
+        display: grid;
+        grid-template-columns: repeat(2,1fr);
+        gap: 2rem;
+    }
+    .container >.index-wrapper >.index-box> .icons-box > .icon{
+        box-shadow: 0 0 10px #111;
+        padding: 1rem 0 1.5rem 1rem; 
+        border-radius: 3px;
+        display: flex;
+        gap: .6rem;
+    }
+}
+
+
+
+@media screen and (min-width:1200px) {
+    nav{
+        padding: 5rem 7rem;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    nav >ul{
+        flex-direction: row;
+        gap: 1.5rem;
+        align-items: end;
+        position: absolute;
+        bottom: 1rem;
+        left: 7rem;
+        width: 80%;
+    }
+    nav >ul >li:nth-of-type(5){
+    }
+    nav >ul >li:nth-of-type(5)>i{
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        right: 0;
+    }
+    .container >.index-wrapper{
+        padding: 2rem 7rem 5rem;
+    }
+    .container >.index-wrapper >.index-box> .icons-box{
+        display: grid;
+        grid-template-columns: repeat(3,1fr);
+        grid-template-rows: repeat(3,1fr);
+        gap: 2rem;
+    }
+    .container >.index-wrapper >.index-box> .icons-box > .icon{
+        box-shadow: 0 0 10px #111;
+        padding: 2rem 0 2rem 1.5rem; 
+        border-radius: 1.5rem;
+        display: flex;
+        gap: .6rem;
+        cursor: pointer;
+    }
+    img{
+        width: 130px;
+    }
+}
