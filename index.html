@@ -1,1404 +1,598 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>(MMS) - Portfolio & Links</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icon Libraries -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <script>
+        const savedTheme = localStorage.getItem('theme') || 'system';
+        if (savedTheme === 'system') {
+            const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        } else {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+    </script>
+    
+    <link rel="stylesheet" href="assets/css/style.css">
 
+    <!-- Custom Styles for Modals, Filters, Navigation, and Mobile Top Bar -->
+    <style>
+        /* --- TAB SWITCHING (Home / Projects) --- */
+        .tab-section { display: none; animation: fadeInTab 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .tab-section.active { display: block; }
+        @keyframes fadeInTab { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* --- TOP LEFT LOGO --- */
+        .top-left-logo {
+            position: fixed; top: 24px; left: 24px; width: 44px; height: 44px; 
+            border-radius: 12px; overflow: hidden; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .top-left-logo img { width: 100%; height: 100%; object-fit: cover;
+                      /* Disables mouse clicks, touch selection, and context menus */
+  pointer-events: none;
+  
+  /* Prevents highlighting or selecting the element */
+  user-select: none;
+  -webkit-user-select: none;
+  
+  /* Prevents dragging the image on desktop */
+  -webkit-user-drag: none;
+  
+  /* Disables long-press context menu popup on mobile/touch devices */
+  -webkit-touch-callout: none;
+        }
 
-  <!-- PWA Meta Tags -->
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#000000FF">
+        /* --- MOBILE TOP SCROLL BACKGROUND --- */
+        .mobile-top-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 80px;
+            z-index: 95; /* Sits right behind the logo (100) and theme switcher */
+            pointer-events: none;
+            background: transparent;
+            transition: background 0.3s ease, backdrop-filter 0.3s ease, border-bottom 0.3s ease;
+        }
+        .mobile-top-bg.scrolled {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+        @media (min-width: 860px) {
+            .mobile-top-bg { display: none !important; } /* Ensure it never shows on desktop */
+        }
 
-<!-- iOS specific meta tags -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="MMS Portfolio">
-<link rel="apple-touch-icon" href="/assets/images/icon-192.png">
+        /* --- PROJECT FILTER TABS --- */
+        .project-filters {
+            display: flex; gap: 8px; margin-bottom: 24px; overflow-x: auto; 
+            padding-bottom: 4px;
+            -ms-overflow-style: none; scrollbar-width: none;
+        }
+        .project-filters::-webkit-scrollbar { display: none; }
+        .filter-btn {
+            padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 13px;
+            background: var(--glass-bg); border: 1px solid var(--glass-border); 
+            color: var(--text-secondary); cursor: pointer; transition: all 0.3s; white-space: nowrap;
+        }
+        .filter-btn:hover { background: var(--glass-hover); }
+        .filter-btn.active { background: var(--text-primary); color: var(--bg-base); }
 
-<!-- Android/Chrome meta tags -->
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MMS</title>
+        /* --- MODAL SYSTEM FIX (Ensures they sit ON TOP of everything) --- */
+        .floating-nav { z-index: 50 !important; }
+        .sheet-overlay { z-index: 200 !important; }
+        .bottom-sheet { z-index: 210 !important; }
+        .preview-overlay { z-index: 300 !important; }
+        .preview-modal { z-index: 310 !important; }
 
-  <!--
-    - favicon
-  -->
-  <link rel="shortcut icon" href="./assets/images/mmslogo.PNG" type="image/x-icon">
+        /* --- PROJECT PREVIEW MODAL --- */
+        .preview-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .preview-overlay.active { opacity: 1; pointer-events: auto; }
+        
+        .preview-modal {
+            position: fixed; background: var(--sheet-bg); 
+            display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--glass-border);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+        }
 
-  <!--
-    - custom css link
-  -->
-  <link rel="stylesheet" href="./assets/css/style.css">
+        .preview-image-container { width: 100%; height: 200px; background: #000; position: relative; overflow: hidden;}
+        .preview-image-container img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
+        
+        .preview-content { padding: 24px; flex: 1; display: flex; flex-direction: column; }
+        .preview-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary); }
+        
+        .mini-card-row { display: flex; gap: 8px; margin-bottom: 24px; }
+        .mini-card { 
+            padding: 6px 12px; background: var(--icon-bg); border-radius: 12px; 
+            font-size: 12px; font-weight: 600; color: var(--accent-color); 
+            display: inline-flex; align-items: center; gap: 6px;
+        }
 
-  <!--
-    - google font link
-  -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+        /* Skills Progress Bar styling */
+        .skill-bar-container { height: 8px; background: var(--icon-bg); border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
+        .skill-bar-fill { height: 100%; background: var(--accent-color); border-radius: 4px; }
+
+        /* --- RESPONSIVE GRID FOR "WHAT I'M DOING" CARDS --- */
+        .services-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 24px; }
+
+        /* Mobile View */
+        @media (max-width: 859px) {
+            .preview-modal {
+                bottom: 0; left: 0; width: 100%; border-radius: 32px 32px 0 0;
+                transform: translateY(100%); max-height: 90vh; box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
+            }
+            .preview-modal.active { transform: translateY(0); }
+        }
+
+        /* Desktop View (FIXED SIZE - MUCH LARGER NOW) */
+        @media (min-width: 860px) {
+            .preview-modal {
+                top: 50%; left: 50%; width: 700px; border-radius: 24px;
+                transform: translate(-50%, -40%); opacity: 0; pointer-events: none;
+                box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            }
+            .preview-modal.active { transform: translate(-50%, -50%); opacity: 1; pointer-events: auto; }
+            .preview-image-container { height: 350px; }
+            .preview-content { padding: 32px; }
+            .services-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
 </head>
-
 <body>
 
-  <!--
-    - #MAIN
-  -->
-
-  <main>
-
-    <!--
-      - #SIDEBAR
-    -->
-
-    <aside class="sidebar" data-sidebar>
-
-      <div class="sidebar-info">
-
-        <figure class="avatar-box">
-          <img src="./assets/images/mms.jpg" alt="MMS" width="80">
-        </figure>
-
-        <div class="info-content">
-          <h1 class="name" title="MMS">MMS</h1>
-
-          <p class="title">Web developer</p>
-          <p class="title">We Die But Our History doesn't Die</p>
-
-        </div>
-
-        <button class="info_more-btn" data-sidebar-btn>
-          <span>Show Contacts</span>
-
-          <ion-icon name="chevron-down"></ion-icon>
-        </button>
-
-      </div>
-
-      <div class="sidebar-info_more">
-
-        <div class="separator"></div>
-
-        <ul class="contacts-list">
-
-          <!-- <li class="contact-item">
-
-            <div class="icon-box">
-              <ion-icon name="mail-outline"></ion-icon>
-            </div>
-
-            <div class="contact-info">
-              <p class="contact-title">Email</p>
-
-              <a href="mailto:richard@example.com" class="contact-link">richard@example.com</a>
-            </div>
-
-          </li> -->
-
-          <!-- <li class="contact-item">
-
-            <div class="icon-box">
-              <ion-icon name="phone-portrait-outline"></ion-icon>
-            </div>
-
-            <div class="contact-info">
-              <p class="contact-title">Phone</p>
-
-              <a href="tel:+12133522795" class="contact-link">+1 (213) 352-2795</a>
-            </div>
-
-          </li> -->
-
-          <li class="contact-item">
-
-            <div class="icon-box">
-              <ion-icon name="calendar-outline"></ion-icon>
-            </div>
-
-            <div class="contact-info">
-              <p class="contact-title">Birthday</p>
-
-              <time datetime="1982-06-23">February 9, 2005</time>
-            </div>
-
-          </li>
-
-          <li class="contact-item">
-
-            <div class="icon-box">
-              <ion-icon name="location-outline"></ion-icon>
-            </div>
-
-            <div class="contact-info">
-              <p class="contact-title">Location</p>
-
-              <address>Egypt</address>
-              <img src="assets/images/egypt-flag-icon.svg" class="egypt" alt="">
-            </div>
-
-          </li>
-
-        </ul>
-
-        <div class="separator"></div>
-
-        <ul class="social-list">
-
-          <li class="social-item">
-            <a href="https://www.facebook.com/MMSSB0/" class="social-link">
-              <ion-icon name="logo-facebook"></ion-icon>
-            </a>
-          </li>
-
-          <!-- <li class="social-item">
-            <a href="#" class="social-link">
-              <ion-icon name="logo-twitter"></ion-icon>
-            </a>
-          </li> -->
-
-          <li class="social-item">
-            <a href="https://www.instagram.com/mmssb0x/" class="social-link">
-              <ion-icon name="logo-instagram"></ion-icon>
-            </a>
-          </li>
-                    <li class="social-item">
-            <a href="https://github.com/MMSSB" class="social-link">
-              <ion-icon name="logo-github"></ion-icon>
-            </a>
-          </li>
-
-        </ul>
-
-      </div>
-
-    </aside>
-
-
-
-
-
-    <!--
-      - #main-content
-    -->
-
-    <div class="main-content">
-
-      <!--
-        - #NAVBAR
-      -->
-
-      <nav class="navbar">
-
-        <ul class="navbar-list">
-
-          <li class="navbar-item">
-            <button class="navbar-link  active" data-nav-link>About</button>
-          </li>
-
-          <!-- <li class="navbar-item">
-            <button class="navbar-link" data-nav-link>Resume</button>
-          </li> -->
-
-          <li class="navbar-item">
-            <button class="navbar-link" data-nav-link>projects</button>
-          </li>
-          <li class="navbar-item">
-           <a href="download/download.html"> <button class="navbar-link">Tools</button></a>
-          </li>
-
-          <!-- <li class="navbar-item">
-            <button class="navbar-link" data-nav-link>Blog</button>
-          </li> -->
-
-          <!-- <li class="navbar-item">
-            <button class="navbar-link" data-nav-link>Contact</button>
-          </li> -->
-
-        </ul>
-
-      </nav>
-
-
-
-
-
-      <!--
-        - #ABOUT
-      -->
-
-      <article class="about  active" data-page="about">
-
-        <header>
-          <h2 class="h2 article-title">About me</h2>
-        </header>
-
-        <section class="about-text">
-          <p>
-            I'm FrontEnd Developer from Egypt, working in web development.
-            I enjoy
-            turning complex problems into simple, beautiful and intuitive designs.
-          </p>
-
-          <p>
-            My job is to build your website so that it is functional and user-friendly but at the same time attractive.
-            Moreover, I
-            add personal touch to your product and make sure that is eye-catching and easy to use. My aim is to bring
-            across your
-            message and identity in the most creative way. 
-          </p>
-        </section>
-
-
-        <!--
-          - service
-        -->
-
-        <section class="service">
-
-          <h3 class="h3 service-title">What i'm doing</h3>
-
-          <ul class="service-list">
-
-            <li class="service-item">
-
-              <div class="service-icon-box">
-                <img src="./assets/images/graphic-designer.png
-                " alt="design icon" width="40">
-              </div>
-
-              <div class="service-content-box">
-                <h4 class="h4 service-item-title">Web design</h4>
-
-                <p class="service-item-text">
-                  The most modern and high-quality design made at a professional level.
-                </p>
-              </div>
-
-            </li>
-
-            <li class="service-item">
-
-              <div class="service-icon-box">
-                <img src="./assets/images/layers.png" alt="Web development icon" width="40">
-              </div>
-
-              <div class="service-content-box">
-                <h4 class="h4 service-item-title">Web development</h4>
-
-                <p class="service-item-text">
-                  High-quality development of sites at the professional level.
-                </p>
-              </div>
-
-            </li>
-
-            <li class="service-item">
-
-              <div class="service-icon-box">
-                <img src="./assets/images/mortarboard.png" alt="study icon" width="40">
-              </div>
-
-              <div class="service-content-box">
-                <h4 class="h4 service-item-title">Studying</h4>
-
-                <p class="service-item-text">
-                  study in Must University
-                </p>
-              </div>
-
-            </li>
-
-            <li class="service-item">
-
-              <div class="service-icon-box">
-                <img src="./assets/images/gaming.png" alt="Gaming Icon" width="40">
-              </div>
-
-              <div class="service-content-box">
-                <h4 class="h4 service-item-title">Game Developing</h4>
-
-                <p class="service-item-text">
-                i make games for all platforms
-                </p>
-              </div>
-
-            </li>
-
-          </ul>
-
-        </section>
-
-
-        <!--
-          - testimonials
-        -->
-
-        <!-- <section class="testimonials">
-
-          <h3 class="h3 testimonials-title">Testimonials</h3>
-
-          <ul class="testimonials-list has-scrollbar">
-
-            <li class="testimonials-item">
-              <div class="content-card" data-testimonials-item>
-
-                <figure class="testimonials-avatar-box">
-                  <img src="./assets/images/avatar-1.png" alt="Daniel lewis" width="60" data-testimonials-avatar>
-                </figure>
-
-                <h4 class="h4 testimonials-item-title" data-testimonials-title>Daniel lewis</h4>
-
-                <div class="testimonials-text" data-testimonials-text>
-                  <p>
-                    Richard was hired to create a corporate identity. We were very pleased with the work done. She has a
-                    lot of experience
-                    and is very concerned about the needs of client. Lorem ipsum dolor sit amet, ullamcous cididt
-                    consectetur adipiscing
-                    elit, seds do et eiusmod tempor incididunt ut laborels dolore magnarels alia.
-                  </p>
-                </div>
-
-              </div>
-            </li>
-
-            <li class="testimonials-item">
-              <div class="content-card" data-testimonials-item>
-
-                <figure class="testimonials-avatar-box">
-                  <img src="./assets/images/avatar-2.png" alt="Jessica miller" width="60" data-testimonials-avatar>
-                </figure>
-
-                <h4 class="h4 testimonials-item-title" data-testimonials-title>Jessica miller</h4>
-
-                <div class="testimonials-text" data-testimonials-text>
-                  <p>
-                    Richard was hired to create a corporate identity. We were very pleased with the work done. She has a
-                    lot of experience
-                    and is very concerned about the needs of client. Lorem ipsum dolor sit amet, ullamcous cididt
-                    consectetur adipiscing
-                    elit, seds do et eiusmod tempor incididunt ut laborels dolore magnarels alia.
-                  </p>
-                </div>
-
-              </div>
-            </li>
-
-            <li class="testimonials-item">
-              <div class="content-card" data-testimonials-item>
-
-                <figure class="testimonials-avatar-box">
-                  <img src="./assets/images/avatar-3.png" alt="Emily evans" width="60" data-testimonials-avatar>
-                </figure>
-
-                <h4 class="h4 testimonials-item-title" data-testimonials-title>Emily evans</h4>
-
-                <div class="testimonials-text" data-testimonials-text>
-                  <p>
-                    Richard was hired to create a corporate identity. We were very pleased with the work done. She has a
-                    lot of experience
-                    and is very concerned about the needs of client. Lorem ipsum dolor sit amet, ullamcous cididt
-                    consectetur adipiscing
-                    elit, seds do et eiusmod tempor incididunt ut laborels dolore magnarels alia.
-                  </p>
-                </div>
-
-              </div>
-            </li>
-
-            <li class="testimonials-item">
-              <div class="content-card" data-testimonials-item>
-
-                <figure class="testimonials-avatar-box">
-                  <img src="./assets/images/avatar-4.png" alt="Henry william" width="60" data-testimonials-avatar>
-                </figure>
-
-                <h4 class="h4 testimonials-item-title" data-testimonials-title>Henry william</h4>
-
-                <div class="testimonials-text" data-testimonials-text>
-                  <p>
-                    Richard was hired to create a corporate identity. We were very pleased with the work done. She has a
-                    lot of experience
-                    and is very concerned about the needs of client. Lorem ipsum dolor sit amet, ullamcous cididt
-                    consectetur adipiscing
-                    elit, seds do et eiusmod tempor incididunt ut laborels dolore magnarels alia.
-                  </p>
-                </div>
-
-              </div>
-            </li>
-
-          </ul>
-
-        </section> -->
-
-
-        <!--
-          - testimonials modal
-        -->
-
-        <div class="modal-container" data-modal-container>
-
-          <div class="overlay" data-overlay></div>
-
-          <section class="testimonials-modal">
-
-            <button class="modal-close-btn" data-modal-close-btn>
-              <ion-icon name="close-outline"></ion-icon>
-            </button>
-
-            <div class="modal-img-wrapper">
-              <figure class="modal-avatar-box">
-                <img src="./assets/images/" alt="Daniel lewis" width="80" data-modal-img>
-              </figure>
-
-              <img src="./assets/images/" alt="quote icon">
-            </div>
-
-            <div class="modal-content">
-
-              <h4 class="h3 modal-title" data-modal-title></h4>
-
-              <time datetime="2021-06-14"></time>
-
-              <div data-modal-text>
-                <p>
-...
-                </p>
-              </div>
-
-            </div>
-
-          </section>
-
-        </div>
-
-
-        <!--
-          - clients
-        -->
-
-        <!-- <section class="clients">
-
-          <h3 class="h3 clients-title">Clients</h3>
-
-          <ul class="clients-list has-scrollbar">
-
-            <li class="clients-item">
-              <a href="#">
-                <img src="./assets/images/logo-1-color.png" alt="client logo">
-              </a>
-            </li>
-
-            <li class="clients-item">
-              <a href="#">
-                <img src="./assets/images/logo-2-color.png" alt="client logo">
-              </a>
-            </li>
-
-            <li class="clients-item">
-              <a href="#">
-                <img src="./assets/images/logo-3-color.png" alt="client logo">
-              </a>
-            </li>
-
-            <li class="clients-item">
-              <a href="#">
-                <img src="./assets/images/logo-4-color.png" alt="client logo">
-              </a>
-            </li>
-
-            <li class="clients-item">
-              <a href="#">
-                <img src="./assets/images/logo-5-color.png" alt="client logo">
-              </a>
-            </li>
-
-            <li class="clients-item">
-              <a href="#">
-                <img src="./assets/images/logo-6-color.png" alt="client logo">
-              </a>
-            </li>
-
-          </ul>
-
-        </section> -->
-
-      </article>
-
-
-
-
-
-      <!--
-        - #RESUME
-      -->
-
-      <article class="resume" data-page="resume">
-
-        <header>
-          <h2 class="h2 article-title"></h2>
-        </header>
-
-        <section class="timeline">
-
-          <div class="title-wrapper">
-            <div class="icon-box">
-              <ion-icon name="book-outline"></ion-icon>
-            </div>
-
-            <h3 class="h3"></h3>
-          </div>
-
-          <ol class="timeline-list">
-
-            <li class="timeline-item">
-
-              <h4 class="h4 timeline-item-title"></h4>
-
-              <span>2007 — 2008</span>
-
-              <p class="timeline-text">
-
-              </p>
-
-            </li>
-
-            <li class="timeline-item">
-
-              <h4 class="h4 timeline-item-title">New york academy of art</h4>
-
-              <span>2006 — 2007</span>
-
-              <p class="timeline-text">
-                Ratione voluptatem sequi nesciunt, facere quisquams facere menda ossimus, omnis voluptas assumenda est
-                omnis..
-              </p>
-
-            </li>
-
-            <li class="timeline-item">
-
-              <h4 class="h4 timeline-item-title">High school of art and design</h4>
-
-              <span>2002 — 2004</span>
-
-              <p class="timeline-text">
-                Duis aute irure dolor in reprehenderit in voluptate, quila voluptas mag odit aut fugit, sed consequuntur
-                magni dolores
-                eos.
-              </p>
-
-            </li>
-
-          </ol>
-
-        </section>
-
-        <section class="timeline">
-
-          <div class="title-wrapper">
-            <div class="icon-box">
-              <ion-icon name="book-outline"></ion-icon>
-            </div>
-
-            <h3 class="h3">Experience</h3>
-          </div>
-
-          <ol class="timeline-list">
-
-            <li class="timeline-item">
-
-              <h4 class="h4 timeline-item-title">Creative director</h4>
-
-              <span>2015 — Present</span>
-
-              <p class="timeline-text">
-                Nemo enim ipsam voluptatem blanditiis praesentium voluptum delenit atque corrupti, quos dolores et qvuas
-                molestias
-                exceptur.
-              </p>
-
-            </li>
-
-            <li class="timeline-item">
-
-              <h4 class="h4 timeline-item-title">Art director</h4>
-
-              <span>2013 — 2015</span>
-
-              <p class="timeline-text">
-                Nemo enims ipsam voluptatem, blanditiis praesentium voluptum delenit atque corrupti, quos dolores et
-                quas molestias
-                exceptur.
-              </p>
-
-            </li>
-
-            <li class="timeline-item">
-
-              <h4 class="h4 timeline-item-title">Web designer</h4>
-
-              <span>2010 — 2013</span>
-
-              <p class="timeline-text">
-                Nemo enims ipsam voluptatem, blanditiis praesentium voluptum delenit atque corrupti, quos dolores et
-                quas molestias
-                exceptur.
-              </p>
-
-            </li>
-
-          </ol>
-
-        </section>
-
-        <section class="skill">
-
-          <h3 class="h3 skills-title">My skills</h3>
-
-          <ul class="skills-list content-card">
-
-            <li class="skills-item">
-
-              <div class="title-wrapper">
-                <h5 class="h5">Web design</h5>
-                <data value="80">80%</data>
-              </div>
-
-              <div class="skill-progress-bg">
-                <div class="skill-progress-fill" style="width: 80%;"></div>
-              </div>
-
-            </li>
-
-            <li class="skills-item">
-
-              <div class="title-wrapper">
-                <h5 class="h5">Graphic design</h5>
-                <data value="70">70%</data>
-              </div>
-
-              <div class="skill-progress-bg">
-                <div class="skill-progress-fill" style="width: 70%;"></div>
-              </div>
-
-            </li>
-
-            <li class="skills-item">
-
-              <div class="title-wrapper">
-                <h5 class="h5">Branding</h5>
-                <data value="90">90%</data>
-              </div>
-
-              <div class="skill-progress-bg">
-                <div class="skill-progress-fill" style="width: 90%;"></div>
-              </div>
-
-            </li>
-
-            <li class="skills-item">
-
-              <div class="title-wrapper">
-                <h5 class="h5">WordPress</h5>
-                <data value="50">50%</data>
-              </div>
-
-              <div class="skill-progress-bg">
-                <div class="skill-progress-fill" style="width: 50%;"></div>
-              </div>
-
-            </li>
-
-          </ul>
-
-        </section>
-
-      </article>
-
-
-
-
-
-      <!--
-        - #PORTFOLIO
-      -->
-
-      <article class="portfolio" data-page="projects">
-
-        <header>
-          <h2 class="h2 article-title">Projects</h2>
-        </header>
-
-        <section class="projects">
-
-          <ul class="filter-list">
-
-            <li class="filter-item">
-              <button class="active" data-filter-btn>All</button>
-            </li>
-
-            <li class="filter-item">
-              <button data-filter-btn>Web design</button>
-            </li>
-
-            <li class="filter-item">
-              <button data-filter-btn>Applications</button>
-            </li>
-
-            <li class="filter-item">
-              <button data-filter-btn>Web development</button>
-            </li>
-
-          </ul>
-
-          <div class="filter-select-box">
-
-            <button class="filter-select" data-select>
-
-              <div class="select-value" data-selecct-value>Select category</div>
-
-              <div class="select-icon">
-                <ion-icon name="chevron-down"></ion-icon>
-              </div>
-
-            </button>
-
-            <ul class="select-list">
-
-              <li class="select-item">
-                <button data-select-item>All</button>
-              </li>
-
-              <li class="select-item">
-                <button data-select-item>Web design</button>
-              </li>
-
-              <li class="select-item">
-                <button data-select-item>Applications</button>
-              </li>
-
-              <li class="select-item">
-                <button data-select-item>Web development</button>
-              </li>
-
-            </ul>
-
-          </div>
-
-          <ul class="project-list">
-                          <li class="project-item  active" data-filter-item data-category="applications">
-              <a target="_blank" href="https://mmssb.github.io/webdock.com">
-
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-
-                  <img src="./assets/images/webdock.PNG" alt="WebDock" loading="lazy">
-                </figure>
-
-                <h3 class="project-title">WebDock</h3>
-
-                <p class="project-category">Applications</p>
-
-              </a>
-            </li>
-              <li class="project-item  active" data-filter-item data-category="web development">
-              <a target="_blank" href="https://mmssb.github.io/smartschedule.com">
-
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-
-                  <img src="./assets/images/sp.PNG" alt="Smart Schedule" loading="lazy">
-                </figure>
-
-                <h3 class="project-title">Smart Schedule</h3>
-
-                <p class="project-category">Web Development</p>
-
-              </a>
-            </li>
-              <li class="project-item  active" data-filter-item data-category="applications">
-              <a target="_blank" href="https://mmssb.github.io/magictext.com">
-
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-
-                  <img src="./assets/images/magictext.PNG" alt="Magic Text" loading="lazy">
-                </figure>
-
-                <h3 class="project-title">Magic Text</h3>
-
-                <p class="project-category">Applications</p>
-
-              </a>
-            </li>
-              <li class="project-item  active" data-filter-item data-category="web development">
-              <a target="_blank" href="https://mmssb.github.io/autominder.com">
-
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-
-                  <img src="./assets/images/autominder.PNG" alt="AutoMinder" loading="lazy">
-                </figure>
-
-                <h3 class="project-title">AutoMinder</h3>
-
-                <p class="project-category">Web development</p>
-
-              </a>
-            </li>
-
-
-              <li class="project-item  active" data-filter-item data-category="web development">
-              <a target="_blank" href="https://mmssb.github.io/logocraft.com">
-
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-
-                  <img src="./assets/images/logocraft.PNG" alt="LogoCraft" loading="lazy">
-                </figure>
-
-                <h3 class="project-title">LogoCraft</h3>
-
-                <p class="project-category">Web development</p>
-
-              </a>
-            </li>
-
-
-                        <li class="project-item  active" data-filter-item data-category="web development">
-              <a target="_blank" href="https://mmssb.github.io/mustercard.com/">
-
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-
-                  <img src="./assets/images/Mustercard.PNG" alt="Muster Card" loading="lazy">
-                </figure>
-
-                <h3 class="project-title">Muster Card</h3>
-
-                <p class="project-category">Web development</p>
-
-              </a>
-            </li>
-
-            <li class="project-item  active" data-filter-item data-category="web development">
-              <a target="_blank" href="https://elforsa256.github.io">
-
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-
-                  <img src="./assets/images/elforsa.PNG" alt="Elforsa" loading="lazy">
-                </figure>
-
-                <h3 class="project-title">Elforsa</h3>
-
-                <p class="project-category">Web development</p>
-
-              </a>
-            </li>
-
-            <li class="project-item  active" data-filter-item data-category="web development">
-              <a target="_blank" href="https://mmssb.github.io/QReator.com">
-
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-
-                  <img src="./assets/images/Qreator.PNG" alt="Qreator" loading="lazy">
-                </figure>
-
-                <h3 class="project-title">QReator</h3>
-
-                <p class="project-category">Web development</p>
-
-              </a>
-            </li>
-
-            <li class="project-item  active" data-filter-item data-category="web development">
-              <a target="_blank" href="https://mmssb.github.io/wealthwise.com/">
-
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-
-                  <img src="./assets/images/wealth.PNG" alt="wealthwise" loading="lazy">
-                </figure>
-
-                <h3 class="project-title">Wealth Wise</h3>
-
-                <p class="project-category">Web development</p>
-
-              </a>
-            </li>
-
-            <li class="project-item  active" data-filter-item data-category="web development">
-              <a target="_blank" href="https://mmssb.github.io/praytime.com/">
-
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-
-                  <img src="./assets/images/praytime.PNG" alt="praytime" loading="lazy">
-                </figure>
-
-                <h3 class="project-title">PrayTime</h3>
-
-                <p class="project-category">Web development</p>
-
-              </a>
-            </li>
-
-
-            <li class="project-item  active" data-filter-item data-category="web development">
-              <a target="_blank" href="https://mmssb.github.io/sugartrack.com/">
-
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-
-                  <img src="./assets/images/sugar.PNG" alt="sugartrack" loading="lazy">
-                </figure>
-
-                <h3 class="project-title">SugarTrack</h3>
-                <p class="project-category">Web development</p>
-
-
-            <!-- <li class="project-item  active" data-filter-item data-category="applications">
-              <a href="#">
-
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-
-                  <img src="./assets/images/project-4.png" alt="brawlhalla" loading="lazy">
-                </figure>
-
-                <h3 class="project-title">Brawlhalla</h3>
-
-                <p class="project-category">Applications</p>
-
-              </a>
-            </li> -->
-
-            <li class="project-item  active" data-filter-item data-category="web development">
-              <a target="_blank" href="https://mustdesktop.github.io/">
-
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-
-                  <img src="./assets/images/Mustdesktop.PNG" alt="Mustdesktop." loading="lazy">
-                </figure>
-
-                <h3 class="project-title">Must Desktop</h3>
-
-                <p class="project-category">Web development</p>
-
-              </a>
-            </li>
-            <li class="project-item  active" data-filter-item data-category="web design">
-              <a href="https://mmssb.github.io/learnworld.com">
-
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-
-                  <img src="./assets/images/learn world.PNG" alt="Learn World" loading="lazy">
-                </figure>
-
-                <h3 class="project-title">Learn World</h3>
-
-                <p class="project-category">Web design</p>
-
-              </a>
-            </li>
-
-            <li class="project-item  active" data-filter-item data-category="web design">
-              <a href="https://mmssb.github.io/fashionbyo.com/">
-
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-
-                  <img src="./assets/images/fashionbo.png" alt="fashion by O" loading="lazy">
-                </figure>
-
-                <h3 class="project-title">Fashion By O</h3>
-
-                <p class="project-category">Web design</p>
-
-              </a>
-            </li>
-
-            <li class="project-item  active" data-filter-item data-category="web design">
-              <a href="https://mmssb.github.io/cvm.idk.github.io/">
-
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-
-                  <img src="./assets/images/cvm.PNG" alt="CVurMageri" loading="lazy">
-                </figure>
-
-                <h3 class="project-title">CVurMageri</h3>
-
-                <p class="project-category">Web design</p>
-
-              </a>
-            </li>
-
-            <li class="project-item  active" data-filter-item data-category="web design">
-              <a href="https://mmssb.github.io/thecenter.github.io">
-
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-
-                  <img src="./assets/images/the center.PNG" alt="The Center" loading="lazy">
-                </figure>
-
-                <h3 class="project-title">The Center</h3>
-
-                <p class="project-category">Web design</p>
-
-              </a>
-            </li>
-
-
-
-                <li class="project-item  active" data-filter-item data-category="web development">
-                  <a target="_blank" href="https://mmssb.github.io/gamestation.github.io/">
+    <div class="dynamic-bg"></div>
+    <div class="bg-overlay"></div>
     
-                    <figure class="project-img">
-                      <div class="project-item-icon-box">
-                        <ion-icon name="eye-outline"></ion-icon>
-                      </div>
-    
-                      <img src="./assets/images/gamestation.PNG" alt="Game" loading="lazy">
-                    </figure>
-    
-                    <h3 class="project-title">Game Station</h3>
-    
-                    <p class="project-category">Web development</p>
-    
-                  </a>
-                </li>
-
-              </a>
-            </li>
-
-          </ul>
-
-        </section>
-
-      </article>
-
-
-
-
-
-      <!--
-        - #BLOG
-      -->
-
-      <article class="blog" data-page="blog">
-
-        <header>
-          <h2 class="h2 article-title">Blog</h2>
-        </header>
-
-        <section class="blog-posts">
-
-          <ul class="blog-posts-list">
-
-            <li class="blog-post-item">
-              <a href="#">
-
-                <figure class="blog-banner-box">
-                  <img src="./assets/images/blog-1.jpg" alt="Design conferences in 2022" loading="lazy">
-                </figure>
-
-                <div class="blog-content">
-
-                  <div class="blog-meta">
-                    <p class="blog-category">Design</p>
-
-                    <span class="dot"></span>
-
-                    <time datetime="2022-02-23">Fab 23, 2022</time>
-                  </div>
-
-                  <h3 class="h3 blog-item-title">Design conferences in 2022</h3>
-
-                  <p class="blog-text">
-                    Veritatis et quasi architecto beatae vitae dicta sunt, explicabo.
-                  </p>
-
-                </div>
-
-              </a>
-            </li>
-
-            <li class="blog-post-item">
-              <a href="#">
-
-                <figure class="blog-banner-box">
-                  <img src="./assets/images/blog-2.jpg" alt="Best fonts every designer" loading="lazy">
-                </figure>
-
-                <div class="blog-content">
-
-                  <div class="blog-meta">
-                    <p class="blog-category">Design</p>
-
-                    <span class="dot"></span>
-
-                    <time datetime="2022-02-23">Fab 23, 2022</time>
-                  </div>
-
-                  <h3 class="h3 blog-item-title">Best fonts every designer</h3>
-
-                  <p class="blog-text">
-                    Sed ut perspiciatis, nam libero tempore, cum soluta nobis est eligendi.
-                  </p>
-
-                </div>
-
-              </a>
-            </li>
-
-            <li class="blog-post-item">
-              <a href="#">
-
-                <figure class="blog-banner-box">
-                  <img src="./assets/images/blog-3.jpg" alt="Design digest #80" loading="lazy">
-                </figure>
-
-                <div class="blog-content">
-
-                  <div class="blog-meta">
-                    <p class="blog-category">Design</p>
-
-                    <span class="dot"></span>
-
-                    <time datetime="2022-02-23">Fab 23, 2022</time>
-                  </div>
-
-                  <h3 class="h3 blog-item-title">Design digest #80</h3>
-
-                  <p class="blog-text">
-                    Excepteur sint occaecat cupidatat no proident, quis nostrum exercitationem ullam corporis suscipit.
-                  </p>
-
-                </div>
-
-              </a>
-            </li>
-
-            <li class="blog-post-item">
-              <a href="#">
-
-                <figure class="blog-banner-box">
-                  <img src="./assets/images/blog-4.jpg" alt="UI interactions of the week" loading="lazy">
-                </figure>
-
-                <div class="blog-content">
-
-                  <div class="blog-meta">
-                    <p class="blog-category">Design</p>
-
-                    <span class="dot"></span>
-
-                    <time datetime="2022-02-23">Fab 23, 2022</time>
-                  </div>
-
-                  <h3 class="h3 blog-item-title">UI interactions of the week</h3>
-
-                  <p class="blog-text">
-                    Enim ad minim veniam, consectetur adipiscing elit, quis nostrud exercitation ullamco laboris nisi.
-                  </p>
-
-                </div>
-
-              </a>
-            </li>
-
-            <li class="blog-post-item">
-              <a href="#">
-
-                <figure class="blog-banner-box">
-                  <img src="./assets/images/blog-5.jpg" alt="The forgotten art of spacing" loading="lazy">
-                </figure>
-
-                <div class="blog-content">
-
-                  <div class="blog-meta">
-                    <p class="blog-category">Design</p>
-
-                    <span class="dot"></span>
-
-                    <time datetime="2022-02-23">Fab 23, 2022</time>
-                  </div>
-
-                  <h3 class="h3 blog-item-title">The forgotten art of spacing</h3>
-
-                  <p class="blog-text">
-                    Maxime placeat, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                  </p>
-
-                </div>
-
-              </a>
-            </li>
-
-            <li class="blog-post-item">
-              <a href="#">
-
-                <figure class="blog-banner-box">
-                  <img src="./assets/images/blog-6.jpg" alt="Design digest #79" loading="lazy">
-                </figure>
-
-                <div class="blog-content">
-
-                  <div class="blog-meta">
-                    <p class="blog-category">Design</p>
-
-                    <span class="dot"></span>
-
-                    <time datetime="2022-02-23">Fab 23, 2022</time>
-                  </div>
-
-                  <h3 class="h3 blog-item-title">Design digest #79</h3>
-
-                  <p class="blog-text">
-                    Optio cumque nihil impedit uo minus quod maxime placeat, velit esse cillum.
-                  </p>
-
-                </div>
-
-              </a>
-            </li>
-
-          </ul>
-
-        </section>
-
-      </article>
-
-
-
-
-
-      <!--
-        - #CONTACT
-      -->
-
-      <article class="contact" data-page="contact">
-
-        <header>
-          <h2 class="h2 article-title">Contact</h2>
-        </header>
-
-        <section class="mapbox" data-mapbox>
-          <figure>
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d199666.5651251294!2d-121.58334177520186!3d38.56165006739519!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x809ac672b28397f9%3A0x921f6aaa74197fdb!2sSacramento%2C%20CA%2C%20USA!5e0!3m2!1sen!2sbd!4v1647608789441!5m2!1sen!2sbd"
-              width="400" height="300" loading="lazy"></iframe>
-          </figure>
-        </section>
-
-        <section class="contact-form">
-
-          <h3 class="h3 form-title">Contact Form</h3>
-
-          <form action="#" class="form" data-form>
-
-            <div class="input-wrapper">
-              <input type="text" name="fullname" class="form-input" placeholder="Full name" required data-form-input>
-
-              <input type="email" name="email" class="form-input" placeholder="Email address" required data-form-input>
-            </div>
-
-            <textarea name="message" class="form-input" placeholder="Your Message" required data-form-input></textarea>
-
-            <button class="form-btn" type="submit" disabled data-form-btn>
-              <ion-icon name="paper-plane"></ion-icon>
-              <span>Send Message</span>
-            </button>
-
-          </form>
-
-        </section>
-
-      </article>
-
+    <!-- Mobile background header (triggers on scroll) -->
+    <div id="mobile-top-bg" class="mobile-top-bg"></div>
+
+    <!-- Top Left Logo Image -->
+    <div class="top-left-logo">
+        <img src="./assets/images/mmslogo.PNG" alt="MMS Logo" onerror="this.src='https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=100&q=80'">
     </div>
 
-  </main>
+    <!-- Theme Switcher -->
+    <div class="theme-switcher">
+        <button class="theme-btn" id="theme-btn" aria-label="Toggle Theme"></button>
+        <div class="theme-dropdown" id="theme-dropdown">
+            <button class="theme-option" data-theme-val="light">
+                <i class="ph ph-sun" style="font-size: 16px;"></i> Light
+            </button>
+            <button class="theme-option" data-theme-val="dark">
+                <i class="ph ph-moon" style="font-size: 16px;"></i> Dark
+            </button>
+            <button class="theme-option" data-theme-val="system">
+                <i class="ph ph-desktop" style="font-size: 16px;"></i> System
+            </button>
+        </div>
+    </div>
 
+    <!-- Floating Navigation Bar -->
+    <nav class="floating-nav">
+        <a href="javascript:void(0)" class="nav-item active" onclick="switchTab('home', this)" title="Home">
+            <i class="ph ph-house"></i>
+        </a>
+        <a href="javascript:void(0)" class="nav-item" onclick="switchTab('projects', this)" title="Projects">
+            <i class="ph ph-briefcase"></i>
+        </a>
+        <a href="download/download.html" class="nav-item" title="Tools">
+            <i class="ph ph-wrench"></i>
+        </a>
+    </nav>
 
+    <div class="app-container" id="app-container">
+        <div class="layout-wrapper">
+            
+            <!-- LEFT COLUMN: PROFILE SIDEBAR -->
+            <div class="profile-sidebar">
+                <div class="avatar-wrap">
+                    <div class="avatar-glow"></div>
+                    <img src="./assets/images/mms.jpg" alt="MMS Avatar" class="avatar" onerror="this.src='https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=500&h=500&q=80'">
+                </div>
+                
+                <h1 class="profile-name">
+                    MMS
+                    <i class="ri-verified-badge-fill verified-badge" style="font-size: 22px;"></i>
+                </h1>
+                <p class="profile-role">FrontEnd Developer</p>
+                <p style="font-size: 13px; font-weight: 500; font-style: italic; color: var(--text-secondary); margin-bottom: 16px; background: var(--glass-bg); padding: 6px 12px; border-radius: 12px; border: 1px solid var(--glass-border);">
+                    "We Die But Our History doesn't Die"
+                </p>
 
+                <div class="stats-row">
+                    <div class="stat-item"><span class="stat-val">Egypt</span><span class="stat-label">Location</span></div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item"><span class="stat-val">MUST</span><span class="stat-label">BIS Graduate</span></div>
+                </div>
 
+                <button class="btn" onclick="openSheet('full')">
+                    <i class="ph-bold ph-info" style="font-size: 18px;"></i>
+                    About & Info
+                </button>
+            </div>
 
-<!-- <script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
-        .then(registration => {
-          console.log('ServiceWorker registration successful');
-        })
-        .catch(err => {
-          console.log('ServiceWorker registration failed: ', err);
+            <!-- RIGHT COLUMN: MAIN CONTENT -->
+            <div class="content-area">
+                
+                <!-- LIVE STATUS BANNER -->
+                <!-- <div class="status-banner">
+                    <div class="pulse-ring"></div>
+                    <div class="status-text">
+                        <div class="status-title">What I'm Doing</div>
+                        <div class="status-desc">Web Development & Game Creation</div>
+                    </div>
+                </div> -->
+
+                <!-- ============================== -->
+                <!-- HOME TAB (ABOUT ME) -->
+                <!-- ============================== -->
+                <div id="home-section" class="tab-section active">
+                    <h2 style="font-size: 20px; font-weight: 700; margin: 24px 0 16px 0; padding-left: 8px;">About Me</h2>
+                    
+                    <div class="info-card">
+                        <p style="color: var(--text-primary); font-size: 15px; line-height: 1.6; margin-bottom: 16px;">
+                            I'm a FrontEnd Developer from Egypt, working in web development. I enjoy turning complex problems into simple, beautiful and intuitive designs.
+                        </p>
+                        <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6;">
+                            My job is to build your website so that it is functional and user-friendly but at the same time attractive. Moreover, I add a personal touch to your product and make sure that it is eye-catching and easy to use. My aim is to bring across your message and identity in the most creative way.
+                        </p>
+                    </div>
+
+                    <!-- <h2 style="font-size: 20px; font-weight: 700; margin: 32px 0 16px 0; padding-left: 8px;">My Skills</h2>
+                    <div class="info-card">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="font-size: 14px; font-weight: 600;">Web Design</span>
+                            <span style="font-size: 14px; color: var(--text-secondary);">80%</span>
+                        </div>
+                        <div class="skill-bar-container"><div class="skill-bar-fill" style="width: 80%;"></div></div>
+
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="font-size: 14px; font-weight: 600;">Graphic Design</span>
+                            <span style="font-size: 14px; color: var(--text-secondary);">70%</span>
+                        </div>
+                        <div class="skill-bar-container"><div class="skill-bar-fill" style="width: 70%;"></div></div>
+
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="font-size: 14px; font-weight: 600;">Branding</span>
+                            <span style="font-size: 14px; color: var(--text-secondary);">90%</span>
+                        </div>
+                        <div class="skill-bar-container"><div class="skill-bar-fill" style="width: 90%;"></div></div>
+
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="font-size: 14px; font-weight: 600;">WordPress</span>
+                            <span style="font-size: 14px; color: var(--text-secondary);">50%</span>
+                        </div>
+                        <div class="skill-bar-container" style="margin-bottom: 0;"><div class="skill-bar-fill" style="width: 50%;"></div></div>
+                    </div> -->
+
+                    <h2 style="font-size: 20px; font-weight: 700; margin: 32px 0 16px 0; padding-left: 8px;">What I'm Doing</h2>
+                    
+                    <div class="services-grid">
+                        <div class="link-card highlight" style="align-items: flex-start; flex-direction: column; cursor: default;">
+                            <div class="link-icon-wrap" style="margin-bottom: 12px;"><i class="fa-solid fa-pen-nib" style="font-size: 20px; color: var(--text-primary);"></i></div>
+                            <span class="link-title" style="margin-bottom: 4px;">Web Design</span>
+                            <span style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">The most modern and high-quality design made at a professional level.</span>
+                        </div>
+                        
+                        <div class="link-card highlight" style="align-items: flex-start; flex-direction: column; cursor: default;">
+                            <div class="link-icon-wrap" style="margin-bottom: 12px;"><i class="fa-solid fa-code" style="font-size: 20px; color: var(--text-primary);"></i></div>
+                            <span class="link-title" style="margin-bottom: 4px;">Web Development</span>
+                            <span style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">High-quality development of sites at the professional level.</span>
+                        </div>
+
+                        <div class="link-card" style="align-items: flex-start; flex-direction: column; cursor: default;">
+                            <div class="link-icon-wrap" style="margin-bottom: 12px;"><i class="fa-solid fa-graduation-cap" style="font-size: 20px; color: var(--text-secondary);"></i></div>
+                            <span class="link-title" style="margin-bottom: 4px;">Graduated</span>
+                            <span style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">Graduated from MUST University.</span>
+                        </div>
+
+                        <div class="link-card" style="align-items: flex-start; flex-direction: column; cursor: default;">
+                            <div class="link-icon-wrap" style="margin-bottom: 12px;"><i class="fa-solid fa-gamepad" style="font-size: 20px; color: var(--text-secondary);"></i></div>
+                            <span class="link-title" style="margin-bottom: 4px;">Game Developing</span>
+                            <span style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">I make games for all platforms.</span>
+                        </div>
+
+                        <!-- <div class="link-card" style="align-items: flex-start; flex-direction: column; cursor: default;">
+                            <div class="link-icon-wrap" style="margin-bottom: 12px;"><i class="fa-solid fa-briefcase" style="font-size: 20px; color: var(--text-secondary);"></i></div>
+                            <span class="link-title" style="margin-bottom: 4px;">Keme Group Specialties</span>
+                            <span style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">Business & Corporate Coordination</span>
+                        </div> -->
+                    </div>
+                </div>
+
+                <!-- ============================== -->
+                <!-- PROJECTS TAB WITH FILTER SYSTEM -->
+                <!-- ============================== -->
+                <div id="projects-section" class="tab-section">
+                    <h2 style="font-size: 20px; font-weight: 700; margin: 24px 0 16px 0; padding-left: 8px;">My Projects</h2>
+
+                    <div class="project-filters">
+                        <button class="filter-btn active" onclick="filterProjects('all', this)">All</button>
+                        <button class="filter-btn" onclick="filterProjects('web-design', this)">Web Design</button>
+                        <button class="filter-btn" onclick="filterProjects('web-dev', this)">Web Development</button>
+                        <button class="filter-btn" onclick="filterProjects('apps', this)">Applications</button>
+                    </div>
+
+                    <div class="links-grid" id="projects-grid">
+                        
+                        <div class="link-card highlight project-card" data-category="apps" style="cursor: pointer;" onclick="openPreview('WebDock', 'Applications', 'https://mmssb.github.io/webdock.com', './assets/images/webdock.PNG')">
+                            <div class="link-icon-wrap"><i class="fa-solid fa-desktop" style="font-size: 20px; color: var(--text-primary);"></i></div>
+                            <div style="display: flex; flex-direction: column; flex: 1;">
+                                <span class="link-title">WebDock</span>
+                                <span style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Applications</span>
+                            </div>
+                        </div>
+
+                        <div class="link-card highlight project-card" data-category="web-dev" style="cursor: pointer;" onclick="openPreview('Smart Schedule', 'Web Development', 'https://mmssb.github.io/smartschedule.com', './assets/images/sp.PNG')">
+                            <div class="link-icon-wrap"><i class="fa-solid fa-calendar-check" style="font-size: 20px; color: var(--text-primary);"></i></div>
+                            <div style="display: flex; flex-direction: column; flex: 1;">
+                                <span class="link-title">Smart Schedule</span>
+                                <span style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Web Development</span>
+                            </div>
+                        </div>
+
+                        <div class="link-card project-card" data-category="apps" style="cursor: pointer;" onclick="openPreview('Magic Text', 'Applications', 'https://mmssb.github.io/magictext.com', './assets/images/magictext.PNG')">
+                            <div class="link-icon-wrap"><i class="fa-solid fa-wand-magic-sparkles" style="font-size: 20px; color: var(--text-secondary);"></i></div>
+                            <div style="display: flex; flex-direction: column; flex: 1;">
+                                <span class="link-title">Magic Text</span>
+                                <span style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Applications</span>
+                            </div>
+                        </div>
+
+                        <div class="link-card project-card" data-category="web-dev" style="cursor: pointer;" onclick="openPreview('AutoMinder', 'Web Development', 'https://mmssb.github.io/autominder.com', './assets/images/autominder.PNG')">
+                            <div class="link-icon-wrap"><i class="fa-solid fa-car" style="font-size: 20px; color: var(--text-secondary);"></i></div>
+                            <div style="display: flex; flex-direction: column; flex: 1;">
+                                <span class="link-title">AutoMinder</span>
+                                <span style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Web Development</span>
+                            </div>
+                        </div>
+
+                        <div class="link-card project-card" data-category="web-dev" style="cursor: pointer;" onclick="openPreview('LogoCraft', 'Web Development', 'https://mmssb.github.io/logocraft.com', './assets/images/logocraft.PNG')">
+                            <div class="link-icon-wrap"><i class="fa-solid fa-pen-nib" style="font-size: 20px; color: var(--text-secondary);"></i></div>
+                            <div style="display: flex; flex-direction: column; flex: 1;">
+                                <span class="link-title">LogoCraft</span>
+                                <span style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Web Development</span>
+                            </div>
+                        </div>
+
+                        <div class="link-card project-card" data-category="web-dev" style="cursor: pointer;" onclick="openPreview('Muster Card', 'Web Development', 'https://mmssb.github.io/mustercard.com/', './assets/images/Mustercard.PNG')">
+                            <div class="link-icon-wrap"><i class="fa-solid fa-address-card" style="font-size: 20px; color: var(--text-secondary);"></i></div>
+                            <div style="display: flex; flex-direction: column; flex: 1;">
+                                <span class="link-title">Muster Card</span>
+                                <span style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Web Development</span>
+                            </div>
+                        </div>
+
+                        <div class="link-card project-card" data-category="web-dev" style="cursor: pointer;" onclick="openPreview('Elforsa', 'Web Development', 'https://elforsa256.github.io', './assets/images/elforsa.PNG')">
+                            <div class="link-icon-wrap"><i class="fa-solid fa-bolt" style="font-size: 20px; color: var(--text-secondary);"></i></div>
+                            <div style="display: flex; flex-direction: column; flex: 1;">
+                                <span class="link-title">Elforsa</span>
+                                <span style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Web Development</span>
+                            </div>
+                        </div>
+
+                        <div class="link-card project-card" data-category="web-dev" style="cursor: pointer;" onclick="openPreview('QReator', 'Web Development', 'https://mmssb.github.io/QReator.com', './assets/images/Qreator.PNG')">
+                            <div class="link-icon-wrap"><i class="fa-solid fa-qrcode" style="font-size: 20px; color: var(--text-secondary);"></i></div>
+                            <div style="display: flex; flex-direction: column; flex: 1;">
+                                <span class="link-title">QReator</span>
+                                <span style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Web Development</span>
+                            </div>
+                        </div>
+
+                        <div class="link-card project-card" data-category="web-dev" style="cursor: pointer;" onclick="openPreview('Wealth Wise', 'Web Development', 'https://mmssb.github.io/wealthwise.com/', './assets/images/wealth.PNG')">
+                            <div class="link-icon-wrap"><i class="fa-solid fa-wallet" style="font-size: 20px; color: var(--text-secondary);"></i></div>
+                            <div style="display: flex; flex-direction: column; flex: 1;">
+                                <span class="link-title">Wealth Wise</span>
+                                <span style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Web Development</span>
+                            </div>
+                        </div>
+
+                        <div class="link-card project-card" data-category="web-dev" style="cursor: pointer;" onclick="openPreview('PrayTime', 'Web Development', 'https://mmssb.github.io/praytime.com/', './assets/images/praytime.PNG')">
+                            <div class="link-icon-wrap"><i class="fa-solid fa-mosque" style="font-size: 20px; color: var(--text-secondary);"></i></div>
+                            <div style="display: flex; flex-direction: column; flex: 1;">
+                                <span class="link-title">PrayTime</span>
+                                <span style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Web Development</span>
+                            </div>
+                        </div>
+
+                        <div class="link-card project-card" data-category="web-dev" style="cursor: pointer;" onclick="openPreview('SugarTrack', 'Web Development', 'https://mmssb.github.io/sugartrack.com/', './assets/images/sugar.PNG')">
+                            <div class="link-icon-wrap"><i class="fa-solid fa-heart-pulse" style="font-size: 20px; color: var(--text-secondary);"></i></div>
+                            <div style="display: flex; flex-direction: column; flex: 1;">
+                                <span class="link-title">SugarTrack</span>
+                                <span style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Web Development</span>
+                            </div>
+                        </div>
+
+                        <div class="link-card project-card" data-category="web-dev" style="cursor: pointer;" onclick="openPreview('Must Desktop', 'Web Development', 'https://mustdesktop.github.io/', './assets/images/Mustdesktop.PNG')">
+                            <div class="link-icon-wrap"><i class="fa-solid fa-graduation-cap" style="font-size: 20px; color: var(--text-secondary);"></i></div>
+                            <div style="display: flex; flex-direction: column; flex: 1;">
+                                <span class="link-title">Must Desktop</span>
+                                <span style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Web Development</span>
+                            </div>
+                        </div>
+
+                        <div class="link-card project-card" data-category="web-design" style="cursor: pointer;" onclick="openPreview('Learn World', 'Web Design', 'https://mmssb.github.io/learnworld.com', './assets/images/learn world.PNG')">
+                            <div class="link-icon-wrap"><i class="fa-solid fa-book-open" style="font-size: 20px; color: var(--text-secondary);"></i></div>
+                            <div style="display: flex; flex-direction: column; flex: 1;">
+                                <span class="link-title">Learn World</span>
+                                <span style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Web Design</span>
+                            </div>
+                        </div>
+
+                        <div class="link-card project-card" data-category="web-design" style="cursor: pointer;" onclick="openPreview('Fashion By O', 'Web Design', 'https://mmssb.github.io/fashionbyo.com/', './assets/images/fashionbo.png')">
+                            <div class="link-icon-wrap"><i class="fa-solid fa-shirt" style="font-size: 20px; color: var(--text-secondary);"></i></div>
+                            <div style="display: flex; flex-direction: column; flex: 1;">
+                                <span class="link-title">Fashion By O</span>
+                                <span style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Web Design</span>
+                            </div>
+                        </div>
+
+                        <div class="link-card project-card" data-category="web-design" style="cursor: pointer;" onclick="openPreview('CVurMageri', 'Web Design', 'https://mmssb.github.io/cvm.idk.github.io/', './assets/images/cvm.PNG')">
+                            <div class="link-icon-wrap"><i class="fa-solid fa-file-lines" style="font-size: 20px; color: var(--text-secondary);"></i></div>
+                            <div style="display: flex; flex-direction: column; flex: 1;">
+                                <span class="link-title">CVurMageri</span>
+                                <span style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Web Design</span>
+                            </div>
+                        </div>
+
+                        <div class="link-card project-card" data-category="web-design" style="cursor: pointer;" onclick="openPreview('The Center', 'Web Design', 'https://mmssb.github.io/thecenter.github.io', './assets/images/the center.PNG')">
+                            <div class="link-icon-wrap"><i class="fa-solid fa-building" style="font-size: 20px; color: var(--text-secondary);"></i></div>
+                            <div style="display: flex; flex-direction: column; flex: 1;">
+                                <span class="link-title">The Center</span>
+                                <span style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Web Design</span>
+                            </div>
+                        </div>
+
+                        <div class="link-card project-card" data-category="web-dev" style="cursor: pointer;" onclick="openPreview('Game Station', 'Web Development', 'https://mmssb.github.io/gamestation.github.io/', './assets/images/gamestation.PNG')">
+                            <div class="link-icon-wrap"><i class="fa-solid fa-gamepad" style="font-size: 20px; color: var(--text-secondary);"></i></div>
+                            <div style="display: flex; flex-direction: column; flex: 1;">
+                                <span class="link-title">Game Station</span>
+                                <span style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Web Development</span>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> <!-- END OF APP CONTAINER -->
+
+    <!-- ============================================== -->
+    <!-- MOVED OUTSIDE OF APP CONTAINER FOR Z-INDEX FIX -->
+    <!-- ============================================== -->
+
+    <!-- ABOUT/INFO BOTTOM SHEET SYSTEM -->
+    <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
+    <div class="bottom-sheet" id="bottom-sheet">
+        <button class="close-btn" onclick="closeSheet()" aria-label="Close menu">
+            <i class="ri-close-line" style="font-size: 24px;"></i>
+        </button>
+        <div class="drag-handle-area" id="drag-handle"><div class="drag-handle"></div></div>
+        <div class="sheet-content">
+            <h2 class="sheet-title">Socials & Extended Info</h2>
+            <div class="grid-2">
+                <div class="grid-card">
+                    <i class="fa-solid fa-cake-candles" style="font-size: 24px; color: var(--accent-color); margin-bottom: 8px;"></i>
+                    <span style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 1px;">Birthday</span>
+                    <span style="font-weight: 600; font-size: 14px; margin-top: 4px;">February 9, 2005</span>
+                </div>
+                <div class="grid-card">
+                    <i class="fa-solid fa-graduation-cap" style="font-size: 24px; color: #3b82f6; margin-bottom: 8px;"></i>
+                    <span style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 1px;">Education</span>
+                    <span style="font-weight: 600; font-size: 14px; margin-top: 4px;">Graduated BIS (MUST)</span>
+                </div>
+            </div>
+            <div class="info-card" style="display: flex; align-items: center; justify-content: center; gap: 24px; padding: 16px;">
+                <!-- <a href="https://www.facebook.com/MMSSB0/" target="_blank" style=" text-decoration: none; color: var(--text-secondary); transition: 0.2s;"><i class="ri-facebook-circle-fill" style="font-size: 28px;"></i></a> -->
+                <!-- <a href="https://www.instagram.com/mmssb0x/" target="_blank" style=" text-decoration: none; color: var(--text-secondary); transition: 0.2s;"><i class="ri-instagram-line" style="font-size: 28px;"></i></a> -->
+                <a href="https://github.com/MMSSB" title="Github" target="_blank" style="color: var(--text-secondary); transition: 0.2s;"><i class="fa-brands fa-github" style="font-size: 28px;"></i></a>
+                <!-- <a href="" target="_blank" style="color: var(--text-secondary); transition: 0.2s;"><i class="fa-brands fa-linkedin" style="font-size: 28px;"></i></a> -->
+            </div>
+        </div>
+    </div>
+
+    <!-- PROJECT PREVIEW MODAL/SHEET -->
+    <div class="preview-overlay" id="preview-overlay" onclick="closePreview()"></div>
+    <div class="preview-modal" id="preview-modal">
+        <button class="close-btn" style="z-index: 10; top: 16px; right: 16px; background: rgba(0,0,0,0.5); border: none; color: white;" onclick="closePreview()">
+            <i class="ri-close-line" style="font-size: 24px;"></i>
+        </button>
+        <div class="preview-image-container">
+            <img id="preview-img" src="" alt="Project Image" onerror="this.src='assets/images/back.jpeg'">
+            <!-- <img id="preview-img" src="" alt="Project Image" onerror="this.src=''"> -->
+        </div>
+        <div class="preview-content">
+            <h3 class="preview-title" id="preview-title">Project Name</h3>
+            <div class="mini-card-row">
+                <div class="mini-card">
+                    <i class="ph-bold ph-tag"></i> 
+                    <span id="preview-category">Category</span>
+                </div>
+            </div>
+            <a href="#" id="preview-link" target="_blank" class="btn primary" style="width: 100%; margin-top: auto;">
+                <i class="ph-bold ph-arrow-square-out"></i>
+                Open Project
+            </a>
+        </div>
+    </div>
+
+    <!-- Script to handle Tabs, Filters, Previews, and Mobile Scroll Header -->
+    <script>
+        // --- 1. HANDLE TAB SWITCHING ---
+        function switchTab(tabId, clickedElement) {
+            document.querySelectorAll('.tab-section').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId + '-section').classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            if (clickedElement) clickedElement.classList.add('active');
+        }
+
+        // --- 2. HANDLE PROJECT FILTERING ---
+        function filterProjects(category, clickedElement) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            clickedElement.classList.add('active');
+
+            const projects = document.querySelectorAll('.project-card');
+            projects.forEach(card => {
+                if (category === 'all' || card.getAttribute('data-category') === category) {
+                    card.style.display = 'flex'; 
+                } else {
+                    card.style.display = 'none'; 
+                }
+            });
+        }
+
+        // --- 3. HANDLE PROJECT PREVIEWS ---
+        function openPreview(title, category, url, imageSrc) {
+            document.getElementById('preview-title').innerText = title;
+            document.getElementById('preview-category').innerText = category;
+            document.getElementById('preview-link').href = url;
+            document.getElementById('preview-img').src = imageSrc;
+
+            document.getElementById('preview-overlay').classList.add('active');
+            document.getElementById('preview-modal').classList.add('active');
+        }
+
+        function closePreview() {
+            document.getElementById('preview-overlay').classList.remove('active');
+            document.getElementById('preview-modal').classList.remove('active');
+        }
+
+        // --- 4. HANDLE MOBILE TOP BAR SCROLL EFFECT ---
+        const appContainerNode = document.getElementById('app-container');
+        const mobileTopBg = document.getElementById('mobile-top-bg');
+        
+        appContainerNode.addEventListener('scroll', () => {
+            // Only apply the effect on screens narrower than 860px
+            if (window.innerWidth < 860) {
+                if (appContainerNode.scrollTop > 20) {
+                    mobileTopBg.classList.add('scrolled');
+                } else {
+                    mobileTopBg.classList.remove('scrolled');
+                }
+            }
         });
-    });
-  }
 
-  // Handle install prompt
-  let deferredPrompt;
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    console.log('PWA install prompt available');
-    // You can show your custom install button here
-  });
-</script> -->
-  <!--
-    - custom js link
-  -->
-  <script src="./assets/js/script.js"></script>
-
-  <!--
-    - ionicon link
-  -->
-  <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
-  <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
-
+        // Ensure it resets properly if the user resizes their window
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 860) {
+                mobileTopBg.classList.remove('scrolled');
+            } else if (appContainerNode.scrollTop > 20) {
+                mobileTopBg.classList.add('scrolled');
+            }
+        });
+    </script>
+    
+    <script src="script.js"></script>
 </body>
-
 </html>
