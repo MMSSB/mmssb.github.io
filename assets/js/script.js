@@ -1,159 +1,148 @@
-'use strict';
+/* -------------------------------------------
+   THEME SWITCHER LOGIC
+------------------------------------------- */
+const themeBtn = document.getElementById('theme-btn');
+const themeDropdown = document.getElementById('theme-dropdown');
+const themeOptions = document.querySelectorAll('.theme-option');
+const htmlElement = document.documentElement;
 
+// Updated to use Phosphor Icons instead of raw SVGs
+const icons = {
+    light: '<i class="ph ph-sun" style="font-size: 20px;"></i>',
+    dark: '<i class="ph ph-moon" style="font-size: 20px;"></i>',
+    system: '<i class="ph ph-desktop" style="font-size: 20px;"></i>'
+};
 
+let currentTheme = localStorage.getItem('theme') || 'system';
 
-// element toggle function
-const elementToggleFunc = function (elem) { elem.classList.toggle("active"); }
-
-
-
-// sidebar variables
-const sidebar = document.querySelector("[data-sidebar]");
-const sidebarBtn = document.querySelector("[data-sidebar-btn]");
-
-// sidebar toggle functionality for mobile
-sidebarBtn.addEventListener("click", function () { elementToggleFunc(sidebar); });
-
-
-
-// testimonials variables
-const testimonialsItem = document.querySelectorAll("[data-testimonials-item]");
-const modalContainer = document.querySelector("[data-modal-container]");
-const modalCloseBtn = document.querySelector("[data-modal-close-btn]");
-const overlay = document.querySelector("[data-overlay]");
-
-// modal variable
-const modalImg = document.querySelector("[data-modal-img]");
-const modalTitle = document.querySelector("[data-modal-title]");
-const modalText = document.querySelector("[data-modal-text]");
-
-// modal toggle function
-const testimonialsModalFunc = function () {
-  modalContainer.classList.toggle("active");
-  overlay.classList.toggle("active");
-}
-
-// add click event to all modal items
-for (let i = 0; i < testimonialsItem.length; i++) {
-
-  testimonialsItem[i].addEventListener("click", function () {
-
-    modalImg.src = this.querySelector("[data-testimonials-avatar]").src;
-    modalImg.alt = this.querySelector("[data-testimonials-avatar]").alt;
-    modalTitle.innerHTML = this.querySelector("[data-testimonials-title]").innerHTML;
-    modalText.innerHTML = this.querySelector("[data-testimonials-text]").innerHTML;
-
-    testimonialsModalFunc();
-
-  });
-
-}
-
-// add click event to modal close button
-modalCloseBtn.addEventListener("click", testimonialsModalFunc);
-overlay.addEventListener("click", testimonialsModalFunc);
-
-
-
-// custom select variables
-const select = document.querySelector("[data-select]");
-const selectItems = document.querySelectorAll("[data-select-item]");
-const selectValue = document.querySelector("[data-selecct-value]");
-const filterBtn = document.querySelectorAll("[data-filter-btn]");
-
-select.addEventListener("click", function () { elementToggleFunc(this); });
-
-// add event in all select items
-for (let i = 0; i < selectItems.length; i++) {
-  selectItems[i].addEventListener("click", function () {
-
-    let selectedValue = this.innerText.toLowerCase();
-    selectValue.innerText = this.innerText;
-    elementToggleFunc(select);
-    filterFunc(selectedValue);
-
-  });
-}
-
-// filter variables
-const filterItems = document.querySelectorAll("[data-filter-item]");
-
-const filterFunc = function (selectedValue) {
-
-  for (let i = 0; i < filterItems.length; i++) {
-
-    if (selectedValue === "all") {
-      filterItems[i].classList.add("active");
-    } else if (selectedValue === filterItems[i].dataset.category) {
-      filterItems[i].classList.add("active");
+function applyTheme(theme) {
+    if (theme === 'system') {
+        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        htmlElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
     } else {
-      filterItems[i].classList.remove("active");
+        htmlElement.setAttribute('data-theme', theme);
     }
-
-  }
-
+    
+    themeBtn.innerHTML = icons[theme];
+    
+    themeOptions.forEach(opt => {
+        if (opt.getAttribute('data-theme-val') === theme) {
+            opt.classList.add('active');
+        } else {
+            opt.classList.remove('active');
+        }
+    });
 }
 
-// add event in all filter button items for large screen
-let lastClickedBtn = filterBtn[0];
+applyTheme(currentTheme);
 
-for (let i = 0; i < filterBtn.length; i++) {
+themeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    themeDropdown.classList.toggle('active');
+});
 
-  filterBtn[i].addEventListener("click", function () {
+document.addEventListener('click', () => {
+    themeDropdown.classList.remove('active');
+});
 
-    let selectedValue = this.innerText.toLowerCase();
-    selectValue.innerText = this.innerText;
-    filterFunc(selectedValue);
+themeOptions.forEach(opt => {
+    opt.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const selectedTheme = opt.getAttribute('data-theme-val');
+        
+        currentTheme = selectedTheme;
+        localStorage.setItem('theme', selectedTheme);
+        applyTheme(selectedTheme);
+        
+        themeDropdown.classList.remove('active');
+    });
+});
 
-    lastClickedBtn.classList.remove("active");
-    this.classList.add("active");
-    lastClickedBtn = this;
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (currentTheme === 'system') {
+        applyTheme('system');
+    }
+});
 
-  });
 
+/* -------------------------------------------
+   BOTTOM SHEET LOGIC
+------------------------------------------- */
+const sheet = document.getElementById('bottom-sheet');
+const overlay = document.getElementById('sheet-overlay');
+const dragHandle = document.getElementById('drag-handle');
+
+let sheetState = 'hidden'; 
+let isDragging = false;
+let startY = 0;
+
+const heights = { hidden: 100, half: 50, full: 10 };
+const isDesktop = () => window.innerWidth > 860;
+
+function updateSheetTransform(offsetY = 0) {
+    if (isDesktop()) return; 
+    const basePercentage = heights[sheetState];
+    sheet.style.transform = `translateY(calc(${basePercentage}% + ${offsetY}px))`;
 }
 
-
-
-// contact form variables
-const form = document.querySelector("[data-form]");
-const formInputs = document.querySelectorAll("[data-form-input]");
-const formBtn = document.querySelector("[data-form-btn]");
-
-// add event to all form input field
-for (let i = 0; i < formInputs.length; i++) {
-  formInputs[i].addEventListener("input", function () {
-
-    // check form validation
-    if (form.checkValidity()) {
-      formBtn.removeAttribute("disabled");
+window.openSheet = (targetState = 'half') => {
+    sheetState = targetState;
+    overlay.classList.add('active');
+    if (isDesktop()) {
+        sheet.classList.add('desktop-open');
     } else {
-      formBtn.setAttribute("disabled", "");
+        sheet.style.transform = `translateY(${heights[targetState]}%)`;
     }
+};
 
-  });
-}
-
-
-
-// page navigation variables
-const navigationLinks = document.querySelectorAll("[data-nav-link]");
-const pages = document.querySelectorAll("[data-page]");
-
-// add event to all nav link
-for (let i = 0; i < navigationLinks.length; i++) {
-  navigationLinks[i].addEventListener("click", function () {
-
-    for (let i = 0; i < pages.length; i++) {
-      if (this.innerHTML.toLowerCase() === pages[i].dataset.page) {
-        pages[i].classList.add("active");
-        navigationLinks[i].classList.add("active");
-        window.scrollTo(0, 0);
-      } else {
-        pages[i].classList.remove("active");
-        navigationLinks[i].classList.remove("active");
-      }
+window.closeSheet = () => {
+    sheetState = 'hidden';
+    overlay.classList.remove('active');
+    if (isDesktop()) {
+        sheet.classList.remove('desktop-open');
+    } else {
+        sheet.style.transform = `translateY(100%)`;
     }
+};
 
-  });
-}
+const onDragStart = (e) => {
+    if (isDesktop()) return; 
+    isDragging = true;
+    sheet.classList.add('dragging'); 
+    startY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
+};
+
+const onDragMove = (e) => {
+    if (!isDragging || isDesktop()) return;
+    if (e.cancelable) e.preventDefault();
+    const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
+    const deltaY = clientY - startY;
+    
+    if (sheetState === 'full' && deltaY < 0) return;
+    updateSheetTransform(deltaY);
+};
+
+const onDragEnd = (e) => {
+    if (!isDragging || isDesktop()) return;
+    isDragging = false;
+    sheet.classList.remove('dragging'); 
+    
+    const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+    const deltaY = clientY - startY;
+    
+    if (sheetState === 'half') {
+        if (deltaY > 60) closeSheet(); 
+        else if (deltaY < -60) sheetState = 'full'; 
+    } else if (sheetState === 'full') {
+        if (deltaY > 60) sheetState = 'half'; 
+    }
+    
+    if(sheetState !== 'hidden') updateSheetTransform(0);
+};
+
+dragHandle.addEventListener('mousedown', onDragStart);
+dragHandle.addEventListener('touchstart', onDragStart, { passive: false });
+window.addEventListener('mousemove', onDragMove);
+window.addEventListener('touchmove', onDragMove, { passive: false });
+window.addEventListener('mouseup', onDragEnd);
+window.addEventListener('touchend', onDragEnd);
