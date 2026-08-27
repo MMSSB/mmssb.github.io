@@ -33,24 +33,65 @@
         .tab-section.active { display: block; }
         @keyframes fadeInTab { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* --- TOP LEFT LOGO --- */
-        .top-left-logo {
-            position: fixed; top: 24px; left: 24px; width: 44px; height: 44px; 
-            border-radius: 12px; overflow: hidden; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        /* --- TOP LEFT HEADER (Logo + Minimized Profile Animation) --- */
+        .top-left-header {
+            position: fixed; top: 24px; left: 24px; z-index: 100;
+            display: flex; align-items: center; height: 44px;
         }
-        .top-left-logo img { width: 100%; height: 100%; object-fit: cover;
-                      /* Disables mouse clicks, touch selection, and context menus */
-  pointer-events: none;
-  
-  /* Prevents highlighting or selecting the element */
-  user-select: none;
-  -webkit-user-select: none;
-  
-  /* Prevents dragging the image on desktop */
-  -webkit-user-drag: none;
-  
-  /* Disables long-press context menu popup on mobile/touch devices */
-  -webkit-touch-callout: none;
+
+        .top-left-logo {
+            width: 44px; height: 44px; border-radius: 12px; overflow: hidden; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); flex-shrink: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .top-left-logo img { 
+            width: 100%; height: 100%; object-fit: cover;
+            /* Disables mouse clicks, touch selection, and context menus */
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-select: none;
+            /* Prevents dragging the image on desktop */
+            -webkit-user-drag: none;
+            /* Disables long-press context menu popup on mobile/touch devices */
+            -webkit-touch-callout: none;
+        }
+
+        .mini-profile {
+            display: flex; align-items: center; gap: 10px;
+            opacity: 0; max-width: 0; transform: translateX(-15px); overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .mini-profile img {
+            width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+            border: 2px solid var(--glass-border);
+        }
+        
+        .mini-profile .mini-name {
+            font-weight: 700; font-size: 16px; color: var(--text-primary); white-space: nowrap;
+        }
+
+        /* --- SCROLL STATES FOR MOBILE ANIMATION --- */
+        .top-left-header.scrolled-header .top-left-logo {
+            opacity: 0; max-width: 0; transform: scale(0.5); margin: 0; border-width: 0;
+        }
+        
+        .top-left-header.scrolled-header .mini-profile {
+            opacity: 1; max-width: 200px; transform: translateX(0);
+        }
+
+        /* Animations to fade out the big profile elements when scrolling */
+        .avatar-wrap, .profile-name { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .scrolled-main-profile .avatar-wrap { opacity: 0; transform: translateY(-20px) scale(0.8); pointer-events: none; }
+        .scrolled-main-profile .profile-name { opacity: 0; transform: translateY(-15px); pointer-events: none; }
+
+        /* Desktop Safety Resets */
+        @media (min-width: 860px) {
+            .top-left-header.scrolled-header .top-left-logo { opacity: 1 !important; max-width: 44px !important; transform: scale(1) !important; }
+            .top-left-header.scrolled-header .mini-profile { opacity: 0 !important; max-width: 0 !important; transform: translateX(-15px) !important; }
+            .scrolled-main-profile .avatar-wrap { opacity: 1 !important; transform: none !important; pointer-events: auto !important; }
+            .scrolled-main-profile .profile-name { opacity: 1 !important; transform: none !important; pointer-events: auto !important; }
         }
 
         /* --- MOBILE TOP SCROLL BACKGROUND --- */
@@ -157,9 +198,17 @@
     <!-- Mobile background header (triggers on scroll) -->
     <div id="mobile-top-bg" class="mobile-top-bg"></div>
 
-    <!-- Top Left Logo Image -->
-    <div class="top-left-logo">
-        <img src="./assets/images/mmslogo.PNG" alt="MMS Logo" onerror="this.src='https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=100&q=80'">
+    <!-- Top Left Header Structure -->
+    <div class="top-left-header" id="top-left-header">
+        <!-- Original Logo -->
+        <div class="top-left-logo">
+            <img src="./assets/images/mmslogo.PNG" alt="MMS Logo" onerror="this.src='https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=100&q=80'">
+        </div>
+        <!-- Minimized Profile for Scroll Animation -->
+        <div class="mini-profile">
+            <img src="./assets/images/mms.jpg" alt="MMS Avatar" onerror="this.src='https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=100&q=80'">
+            <span class="mini-name">MMS </span>
+        </div>
     </div>
 
     <!-- Theme Switcher -->
@@ -206,7 +255,7 @@
                     <i class="ri-verified-badge-fill verified-badge" style="font-size: 22px;"></i>
                 </h1>
                 <p class="profile-role">FrontEnd Developer</p>
-                <p style="font-size: 13px; font-weight: 500; font-style: italic; color: var(--text-secondary); margin-bottom: 16px; background: var(--glass-bg); padding: 6px 12px; border-radius: 12px; border: 1px solid var(--glass-border);">
+                <p style="font-size: 13px; font-weight: 500; font-style: italic; color: var(--text-secondary); margin-bottom: 16px; background: var(--glass-bg); padding: 6px 12px; border-radius: var(--br); border: 1px solid var(--glass-border);">
                     "We Die But Our History doesn't Die"
                 </p>
 
@@ -249,33 +298,6 @@
                         </p>
                     </div>
 
-                    <!-- <h2 style="font-size: 20px; font-weight: 700; margin: 32px 0 16px 0; padding-left: 8px;">My Skills</h2>
-                    <div class="info-card">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                            <span style="font-size: 14px; font-weight: 600;">Web Design</span>
-                            <span style="font-size: 14px; color: var(--text-secondary);">80%</span>
-                        </div>
-                        <div class="skill-bar-container"><div class="skill-bar-fill" style="width: 80%;"></div></div>
-
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                            <span style="font-size: 14px; font-weight: 600;">Graphic Design</span>
-                            <span style="font-size: 14px; color: var(--text-secondary);">70%</span>
-                        </div>
-                        <div class="skill-bar-container"><div class="skill-bar-fill" style="width: 70%;"></div></div>
-
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                            <span style="font-size: 14px; font-weight: 600;">Branding</span>
-                            <span style="font-size: 14px; color: var(--text-secondary);">90%</span>
-                        </div>
-                        <div class="skill-bar-container"><div class="skill-bar-fill" style="width: 90%;"></div></div>
-
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                            <span style="font-size: 14px; font-weight: 600;">WordPress</span>
-                            <span style="font-size: 14px; color: var(--text-secondary);">50%</span>
-                        </div>
-                        <div class="skill-bar-container" style="margin-bottom: 0;"><div class="skill-bar-fill" style="width: 50%;"></div></div>
-                    </div> -->
-
                     <h2 style="font-size: 20px; font-weight: 700; margin: 32px 0 16px 0; padding-left: 8px;">What I'm Doing</h2>
                     
                     <div class="services-grid">
@@ -302,12 +324,6 @@
                             <span class="link-title" style="margin-bottom: 4px;">Game Developing</span>
                             <span style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">I make games for all platforms.</span>
                         </div>
-
-                        <!-- <div class="link-card" style="align-items: flex-start; flex-direction: column; cursor: default;">
-                            <div class="link-icon-wrap" style="margin-bottom: 12px;"><i class="fa-solid fa-briefcase" style="font-size: 20px; color: var(--text-secondary);"></i></div>
-                            <span class="link-title" style="margin-bottom: 4px;">Keme Group Specialties</span>
-                            <span style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">Business & Corporate Coordination</span>
-                        </div> -->
                     </div>
                 </div>
 
@@ -494,10 +510,7 @@
                 </div>
             </div>
             <div class="info-card" style="display: flex; align-items: center; justify-content: center; gap: 24px; padding: 16px;">
-                <!-- <a href="https://www.facebook.com/MMSSB0/" target="_blank" style=" text-decoration: none; color: var(--text-secondary); transition: 0.2s;"><i class="ri-facebook-circle-fill" style="font-size: 28px;"></i></a> -->
-                <!-- <a href="https://www.instagram.com/mmssb0x/" target="_blank" style=" text-decoration: none; color: var(--text-secondary); transition: 0.2s;"><i class="ri-instagram-line" style="font-size: 28px;"></i></a> -->
                 <a href="https://github.com/MMSSB" title="Github" target="_blank" style="color: var(--text-secondary); transition: 0.2s;"><i class="fa-brands fa-github" style="font-size: 28px;"></i></a>
-                <!-- <a href="" target="_blank" style="color: var(--text-secondary); transition: 0.2s;"><i class="fa-brands fa-linkedin" style="font-size: 28px;"></i></a> -->
             </div>
         </div>
     </div>
@@ -510,7 +523,6 @@
         </button>
         <div class="preview-image-container">
             <img id="preview-img" src="" alt="Project Image" onerror="this.src='assets/images/back.jpeg'">
-            <!-- <img id="preview-img" src="" alt="Project Image" onerror="this.src=''"> -->
         </div>
         <div class="preview-content">
             <h3 class="preview-title" id="preview-title">Project Name</h3>
@@ -572,14 +584,20 @@
         // --- 4. HANDLE MOBILE TOP BAR SCROLL EFFECT ---
         const appContainerNode = document.getElementById('app-container');
         const mobileTopBg = document.getElementById('mobile-top-bg');
+        const topLeftHeader = document.getElementById('top-left-header');
+        const profileSidebar = document.querySelector('.profile-sidebar');
         
         appContainerNode.addEventListener('scroll', () => {
             // Only apply the effect on screens narrower than 860px
             if (window.innerWidth < 860) {
-                if (appContainerNode.scrollTop > 20) {
+                if (appContainerNode.scrollTop > 45) { // Threshold increased slightly for smoother interaction
                     mobileTopBg.classList.add('scrolled');
+                    topLeftHeader.classList.add('scrolled-header');
+                    profileSidebar.classList.add('scrolled-main-profile');
                 } else {
                     mobileTopBg.classList.remove('scrolled');
+                    topLeftHeader.classList.remove('scrolled-header');
+                    profileSidebar.classList.remove('scrolled-main-profile');
                 }
             }
         });
@@ -588,8 +606,12 @@
         window.addEventListener('resize', () => {
             if (window.innerWidth >= 860) {
                 mobileTopBg.classList.remove('scrolled');
-            } else if (appContainerNode.scrollTop > 20) {
+                topLeftHeader.classList.remove('scrolled-header');
+                profileSidebar.classList.remove('scrolled-main-profile');
+            } else if (appContainerNode.scrollTop > 45) {
                 mobileTopBg.classList.add('scrolled');
+                topLeftHeader.classList.add('scrolled-header');
+                profileSidebar.classList.add('scrolled-main-profile');
             }
         });
     </script>
