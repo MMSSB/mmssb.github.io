@@ -46,7 +46,7 @@
 
         .workspace-tabs { display: flex; gap: 8px; padding-bottom: 16px; overflow-x: auto;}
         .workspace-tabs::-webkit-scrollbar { display: none; }
-        .ws-tab { flex: 1; min-width: 100px; padding: 10px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; font-size: 12px; font-weight: 700; color: var(--text-secondary); cursor: pointer; text-align: center; transition: 0.2s; white-space: nowrap;}
+        .ws-tab { flex: 1; min-width: 90px; padding: 10px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; font-size: 12px; font-weight: 700; color: var(--text-secondary); cursor: pointer; text-align: center; transition: 0.2s; white-space: nowrap;}
         .ws-tab.active { background: var(--accent); color: #000; border-color: var(--accent); }
 
         .workspace-panel { display: none; flex: 1; overflow-y: auto; }
@@ -107,6 +107,9 @@
         .studio-footer { padding: 20px 24px; border-top: 1px solid var(--card-border); background: var(--sidebar-bg); }
         .export-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--accent), #059669); color: #000; border: none; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s; text-transform: uppercase; letter-spacing: 1px;}
         .export-btn:hover { opacity: 0.95; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);}
+        
+        .reset-btn { width: 100%; padding: 14px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; margin-top: 12px;}
+        .reset-btn:hover { background: #ef4444; color: white; }
 
         /* PREVIEW AREA */
         .preview-area { flex: 1; display: flex; flex-direction: column; background: var(--bg-main); position: relative;}
@@ -117,9 +120,9 @@
         .viewport-btn.active { background: var(--card-border); color: var(--text-primary); box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
 
         .preview-frame-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; overflow: hidden; background: radial-gradient(circle at center, var(--card-bg) 0%, transparent 100%); position: relative;}
-        .frame-container { width: 100%; height: 100%; border-radius: 24px; border: 1px solid var(--card-border); overflow: hidden; background: var(--bg-main); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 30px 60px rgba(0,0,0,0.15);}
+        .frame-container { width: 100%; height: 100%; border-radius: 24px; border: 1px solid var(--card-border); overflow: hidden; background: var(--bg-main); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 30px 60px rgba(0,0,0,0.3);}
         .frame-container.tablet { width: 860px; height: 95%; }
-        .frame-container.mobile { width: 390px; height: 844px; border-radius: 50px; border: 12px solid var(--text-primary); box-shadow: 0 40px 80px rgba(0,0,0,0.2), inset 0 0 0 4px var(--bg-main);}
+        .frame-container.mobile { width: 390px; height: 844px; border-radius: 50px; border: 12px solid var(--text-primary); box-shadow: 0 40px 80px rgba(0,0,0,0.5), inset 0 0 0 4px var(--bg-main);}
         iframe { width: 100%; height: 100%; border: none; background: var(--bg-main);}
 
         /* ICON MODAL */
@@ -199,14 +202,14 @@
                 </div>
                 <div class="accordion-body">
                     <div class="field"><label>Profile Avatar</label><div class="file-upload-wrapper"><div class="file-upload-btn"><i class="ph-bold ph-image"></i> Upload Avatar</div><input type="file" accept="image/*" onchange="handleImageUpload(event, 'cfg-avatar-preview', 'avatar')"><img id="cfg-avatar-preview" class="image-preview-thumb"></div></div>
-                    <div class="field"><label>Display Name</label><input type="text" id="cfg-name" value="user" oninput="triggerCompile()"></div>
+                    <div class="field"><label>Display Name</label><input type="text" id="cfg-name" value="Johny" oninput="triggerCompile()"></div>
                     <div class="field" style="display:flex; align-items:center; gap:10px;"><input type="checkbox" id="cfg-verified" checked onchange="triggerCompile()" style="width:18px; height:18px;"> <span style="font-size:13px; font-weight:600;">Verified Badge</span></div>
-                    <div class="field"><label>Role</label><input type="text" id="cfg-role" value="Partner & Business Development" oninput="triggerCompile()"></div>
-                    <div class="field"><label>Motto</label><input type="text" id="cfg-quote" value="Keme Group Specialties (Egypt)" oninput="triggerCompile()"></div>
-                    <div class="field"><label>Bio</label><textarea id="cfg-bio" oninput="triggerCompile()">Graduated from MUST (BIS). Developing Godot games and web applications. Operating within the outsourced ink manufacturing sector since 2022.</textarea></div>
+                    <div class="field"><label>Role</label><input type="text" id="cfg-role" value="Creative FullStack Developer" oninput="triggerCompile()"></div>
+                    <div class="field"><label>Motto</label><input type="text" id="cfg-quote" value="Building digital experiences with passion" oninput="triggerCompile()"></div>
+                    <div class="field"><label>Bio</label><textarea id="cfg-bio" oninput="triggerCompile()">Passionate developer turning complex problems into intuitive, high-performance web applications and UI designs.</textarea></div>
                     <div style="display: flex; gap: 12px;">
-                        <div class="field" style="flex: 1;"><label>Stat 1 (Val/Lbl)</label><input type="text" id="cfg-s1-v" value="Egypt" oninput="triggerCompile()" style="margin-bottom: 8px;"><input type="text" id="cfg-s1-l" value="Location" oninput="triggerCompile()"></div>
-                        <div class="field" style="flex: 1;"><label>Stat 2 (Val/Lbl)</label><input type="text" id="cfg-s2-v" value="MUST" oninput="triggerCompile()" style="margin-bottom: 8px;"><input type="text" id="cfg-s2-l" value="BIS Graduate" oninput="triggerCompile()"></div>
+                        <div class="field" style="flex: 1;"><label>Stat 1 (Val/Lbl)</label><input type="text" id="cfg-s1-v" value="California" oninput="triggerCompile()" style="margin-bottom: 8px;"><input type="text" id="cfg-s1-l" value="Location" oninput="triggerCompile()"></div>
+                        <div class="field" style="flex: 1;"><label>Stat 2 (Val/Lbl)</label><input type="text" id="cfg-s2-v" value="Stanford" oninput="triggerCompile()" style="margin-bottom: 8px;"><input type="text" id="cfg-s2-l" value="Education" oninput="triggerCompile()"></div>
                     </div>
                 </div>
             </div>
@@ -291,8 +294,8 @@
         <!-- WORKSPACE: SEO & META -->
         <div class="workspace-panel" id="ws-seo" style="padding: 24px;">
             <h2 style="font-size: 18px; margin-bottom: 24px; border-bottom: 1px solid var(--card-border); padding-bottom: 12px;">Search Engine Optimization</h2>
-            <div class="field"><label>App Title (Browser Tab)</label><input type="text" id="cfg-seo-title" value="MMS | Portfolio" oninput="triggerCompile()"></div>
-            <div class="field"><label>Meta Description (Google Snippet)</label><textarea id="cfg-seo-desc" oninput="triggerCompile()">Professional portfolio and app showcasing web and game development projects.</textarea></div>
+            <div class="field"><label>App Title (Browser Tab)</label><input type="text" id="cfg-seo-title" value="Johny | Portfolio" oninput="triggerCompile()"></div>
+            <div class="field"><label>Meta Description (Google Snippet)</label><textarea id="cfg-seo-desc" oninput="triggerCompile()">Professional portfolio and app showcasing web and development projects.</textarea></div>
             <div class="field">
                 <label>Favicon (Browser Icon)</label>
                 <div class="file-upload-wrapper">
@@ -336,6 +339,12 @@
                     <span style="font-size:11px; color:var(--text-secondary);">Automatically caches your changes to local storage.</span>
                 </div>
             </div>
+
+            <!-- RESET DATA BUTTON -->
+            <div style="margin-top: 32px; border-top: 1px solid var(--card-border); padding-top: 24px;">
+                <label style="color: #ef4444; margin-bottom: 8px; display: block;">Danger Zone</label>
+                <button class="reset-btn" onclick="resetFactoryDefaults()"><i class="ph-bold ph-arrow-counter-clockwise"></i> Reset to Default Settings</button>
+            </div>
         </div>
 
         <!-- WORKSPACE: ABOUT -->
@@ -343,7 +352,7 @@
             <div style="text-align: center; margin-bottom: 32px;">
                 <i class="ph-fill ph-codesandbox-logo" style="font-size: 64px; color: var(--accent); margin-bottom: 16px;"></i>
                 <h2 style="font-size: 20px;">MMS App Builder Pro</h2>
-                <span style="font-size: 12px; color: var(--text-secondary); background: var(--card-bg); padding: 4px 10px; border-radius: 20px; margin-top: 8px; display: inline-block;">v5.0.0 Ultimate CMS</span>
+                <span style="font-size: 12px; color: var(--text-secondary); background: var(--card-bg); padding: 4px 10px; border-radius: 20px; margin-top: 8px; display: inline-block;">v5.1.0 Ultimate CMS</span>
             </div>
             <p style="font-size: 13px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 16px;">The ultimate offline, standalone single-page application generator. Features dynamic routing, unlimited custom pages, robust icon libraries, and an advanced base64 image compiler.</p>
             <p style="font-size: 13px; line-height: 1.6; color: var(--text-secondary);">No databases. No servers. Just pure front-end perfection compiled straight to your hard drive.</p>
@@ -399,50 +408,49 @@
 
     <!-- BUILDER SCRIPT ENGINE -->
     <script>
-        // --- 1. CORE DATA & STATE ---
-        const appState = {
-            // customIconTargets: { aboutBtnIcon: "ph-bold ph-info" },
-            // images: {
-            //     bg: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop",
-            //     avatar: "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=500&q=80",
-            //     favicon: "https://cdn-icons-png.flaticon.com/512/3242/3242236.png"
-            // },
-            // customIcons: [ { class: "fa-solid fa-fire", name: "fire custom", lib: "custom" } ],
-            // customPages: [
-            //     {
-            //         id: "contact", title: "Contact Me",
-            //         blocks: [
-            //             { type: "heading", content: "Get in Touch" },
-            //             { type: "text", content: "Feel free to reach out to me for any web or game development inquiries." },
-            //             { type: "card", title: "Email Me", desc: "mms@example.com", icon: "ph-bold ph-envelope", link: "mailto:mms@example.com" },
-            //             { type: "embed", title: "My Favorite Track", url: "https://open.spotify.com/embed/track/3n3Ppam7vgaBg0sSYFMRRo" },
-            //             { type: "button", title: "View Resume", link: "#", icon: "ph-bold ph-download-simple" }
-            //         ]
-            //     }
-            // ],
-            // aboutCards: [
-            //     { icon: "fa-solid fa-cat", color: "#10b981", label: "Cat", value: "Shandawily" },
-            //     { icon: "fa-solid fa-graduation-cap", color: "#3b82f6", label: "Education", value: "Graduated BIS (MUST)" },
-            //     { icon: "fa-solid fa-briefcase", color: "#f59e0b", label: "Company", value: "Keme Group" }
-            // ],
-            // aboutLinks: [ { title: "Github", url: "https://github.com/MMSSB", icon: "fa-brands fa-github" } ],
-            // services: [ 
-            //     { title: "Web Dev", icon: "fa-solid fa-code", desc: "Vanilla JS, HTML, CSS & Electron." },
-            //     { title: "Godot Games", icon: "fa-solid fa-gamepad", desc: "2D Pixel Art game mechanics." },
-            //     { title: "Corporate Dev", icon: "fa-solid fa-briefcase", desc: "Active in outsourced manufacturing since 2022." }
-            // ],
-            // projects: [ 
-            //     { title: "Shandawily's Adventure", cat: "games", link: "#", icon: "fa-solid fa-gamepad", imgBase64: "" },
-            //     { title: "Qashqai Engine Swapper", cat: "apps", link: "#", icon: "fa-solid fa-car", imgBase64: "" },
-            //     { title: "WebDock", cat: "web-dev", link: "https://mmssb.github.io/webdock.com", icon: "fa-solid fa-desktop", imgBase64: "" } 
-            // ],
-            // socials: [ { platform: "website", icon: "ph-bold ph-globe", url: "https://mmssb.github.io/", color: "#10b981" } ],
-            // dock: [
-            //     { icon: "ph-bold ph-house", tooltip: "Home", action: "home", isTab: true },
-            //     { icon: "ph-bold ph-briefcase", tooltip: "Projects", action: "projects", isTab: true },
-            //     { icon: "ph-bold ph-envelope", tooltip: "Contact", action: "contact", isTab: true }
-            // ]
+        // --- 1. DEFAULT FACTORY STATE (GENERIC USER) ---
+        const DEFAULT_STATE = {
+            customIconTargets: { aboutBtnIcon: "ph-bold ph-info" },
+            images: {
+                bg: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop",
+                avatar: "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=500&q=80",
+                favicon: "https://cdn-icons-png.flaticon.com/512/3242/3242236.png"
+            },
+            customIcons: [ { class: "fa-solid fa-fire", name: "fire custom", lib: "custom" } ],
+            customPages: [
+                {
+                    id: "contact", title: "Contact Me",
+                    blocks: [
+                        { type: "heading", content: "Get in Touch" },
+                        { type: "text", content: "Feel free to reach out to me for any collaboration or project inquiries." },
+                        { type: "card", title: "Email Me", desc: "", icon: "ph-bold ph-envelope", link: "mailto:" },
+                        { type: "button", title: "View Resume", link: "#", icon: "ph-bold ph-download-simple" }
+                    ]
+                }
+            ],
+            aboutCards: [
+                { icon: "fa-solid fa-cake-candles", color: "#10b981", label: "Birthday", value: "March 12, 1998" },
+                { icon: "fa-solid fa-graduation-cap", color: "#3b82f6", label: "Education", value: "B.Sc. Computer Science" },
+                { icon: "fa-solid fa-heart", color: "#fb003f", label: "Status", value: "Available for Hire" }
+            ],
+            aboutLinks: [ { title: "Github", url: "https://github.com", icon: "fa-brands fa-github" } ],
+            services: [ 
+                { title: "Web Dev", icon: "fa-solid fa-code", desc: "Building scalable web applications." },
+                { title: "UI/UX Design", icon: "fa-solid fa-pen-nib", desc: "Creating modern digital user experiences." }
+            ],
+            projects: [ 
+                { title: "Project Nexus", cat: "apps", link: "#", icon: "fa-solid fa-desktop", imgBase64: "" },
+                { title: "CloudMetrics", cat: "web-dev", link: "#", icon: "fa-solid fa-chart-line", imgBase64: "" } 
+            ],
+            socials: [ { platform: "website", icon: "ph-bold ph-globe", url: "https://example.com", color: "#10b981" } ],
+            dock: [
+                { icon: "ph-bold ph-house", tooltip: "Home", action: "home", isTab: true },
+                { icon: "ph-bold ph-briefcase", tooltip: "Projects", action: "projects", isTab: true },
+                { icon: "ph-bold ph-envelope", tooltip: "Contact", action: "contact", isTab: true }
+            ]
         };
+
+        let appState = JSON.parse(JSON.stringify(DEFAULT_STATE));
 
         // --- 2. WORKSPACE & UI NAVIGATION ---
         function switchWorkspace(id, btn) {
@@ -481,7 +489,7 @@
         });
 
         // --- 3. ICON CATALOG ENGINE ---
-        const commonNouns = ['house', 'user', 'gear', 'heart', 'star', 'envelope', 'phone', 'camera', 'map-pin', 'link', 'check', 'x', 'plus', 'minus', 'image', 'video', 'desktop', 'device-mobile', 'code', 'terminal', 'lightning', 'globe', 'car', 'briefcase', 'info', 'qr-code', 'sparkle', 'download-simple'];
+        const commonNouns = ['house', 'user', 'gear', 'heart', 'star', 'envelope', 'phone', 'camera', 'map-pin', 'link', 'check', 'x', 'plus', 'minus', 'image', 'video', 'desktop', 'device-mobile', 'code', 'terminal', 'lightning', 'globe', 'car', 'briefcase', 'info', 'qr-code', 'sparkle', 'download-simple', 'chart-line'];
         const brandNames = ['github', 'facebook', 'instagram', 'twitter', 'linkedin', 'youtube', 'discord', 'tiktok', 'whatsapp'];
         let ICON_CATALOG = [];
         brandNames.forEach(b => ICON_CATALOG.push({ class: `fa-brands fa-${b}`, name: b, lib: 'fa-brands' }));
@@ -583,17 +591,16 @@
 
         // --- 5. DYNAMIC CRUD RENDERING ---
         function renderLists() {
-            // CUSTOM PAGES ENGINE
             document.getElementById('pages-container').innerHTML = appState.customPages.map((page, pIdx) => `
                 <div class="dynamic-item-card" style="border-left-color: var(--accent);">
                     <button class="remove-item-btn" onclick="remPage(${pIdx})" title="Delete Page"><i class="ph-bold ph-trash"></i></button>
                     <div style="display:flex; gap:12px;">
-                        <div class="field" style="flex:1;"><label>Page ID (for URL/Dock linking)</label><input type="text" value="${page.id}" oninput="appState.customPages[${pIdx}].id=this.value; triggerCompile()"></div>
+                        <div class="field" style="flex:1;"><label>Page ID</label><input type="text" value="${page.id}" oninput="appState.customPages[${pIdx}].id=this.value; triggerCompile()"></div>
                         <div class="field" style="flex:1;"><label>Page Title</label><input type="text" value="${page.title}" oninput="appState.customPages[${pIdx}].title=this.value; triggerCompile()"></div>
                     </div>
                     
                     <div style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--card-border);">
-                        <label style="font-size: 11px; color: var(--accent); margin-bottom: 12px; display:block;">PAGE CONTENT BLOCKS</label>
+                        <label style="font-size: 11px; color: var(--accent); margin-bottom: 12px; display:block;">PAGE BLOCKS</label>
                         ${page.blocks.map((b, bIdx) => renderBlockUI(b, pIdx, bIdx)).join('')}
                         <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
                             <button class="add-block-btn" onclick="addBlock(${pIdx}, 'heading')">+ Heading</button>
@@ -693,6 +700,44 @@
         function addDock() { appState.dock.push({icon: "ph-bold ph-star", tooltip: "New", action: "#", isTab: false}); renderLists(); triggerCompile(); }
         function remItem(arr, index) { appState[arr].splice(index, 1); renderLists(); triggerCompile(); }
 
+        // --- RESET FACTORY DEFAULTS ---
+        function resetFactoryDefaults() {
+            if(confirm("Are you sure you want to reset all data back to factory defaults?")) {
+                localStorage.removeItem('mms_builder_autosave_v5');
+                appState = JSON.parse(JSON.stringify(DEFAULT_STATE));
+                document.getElementById('cfg-seo-title').value = "Alex Morgan | Portfolio";
+                document.getElementById('cfg-seo-desc').value = "Professional portfolio and app showcasing web and development projects.";
+                document.getElementById('cfg-accent').value = "#10b981";
+                document.getElementById('cfg-radius').value = "20";
+                document.getElementById('cfg-blur').value = "40";
+                document.getElementById('cfg-font').value = "'Plus Jakarta Sans', sans-serif";
+                document.getElementById('cfg-align').value = "center";
+                document.getElementById('cfg-theme-def').value = "system";
+                document.getElementById('cfg-theme-show').checked = true;
+                document.getElementById('cfg-verified').checked = true;
+                document.getElementById('cfg-card-bg').value = "#ffffff";
+                document.getElementById('cfg-card-op').value = "0.03";
+                document.getElementById('cfg-ov-top').value = "#0a0a0c";
+                document.getElementById('cfg-ov-bot').value = "#0a0a0c";
+                document.getElementById('cfg-border-op').value = "0.08";
+                document.getElementById('cfg-name').value = "Alex Morgan";
+                document.getElementById('cfg-role').value = "Creative FullStack Developer";
+                document.getElementById('cfg-quote').value = "Building digital experiences with passion";
+                document.getElementById('cfg-bio').value = "Passionate developer turning complex problems into intuitive, high-performance web applications and UI designs.";
+                document.getElementById('cfg-s1-v').value = "California";
+                document.getElementById('cfg-s1-l').value = "Location";
+                document.getElementById('cfg-s2-v').value = "Stanford";
+                document.getElementById('cfg-s2-l').value = "Education";
+                document.getElementById('cfg-about-btn').value = "About & Info";
+                document.getElementById('cfg-about-title').value = "Extended Information";
+                document.getElementById('cfg-custom-css').value = "";
+                document.getElementById('cfg-custom-js').value = "";
+                renderLists();
+                triggerCompile();
+                alert("Reset successful!");
+            }
+        }
+
         // --- 6. AUTO-SAVE & COMPILER ---
         function autoSave() {
             if(document.getElementById('cfg-autosave').checked) {
@@ -706,6 +751,7 @@
                         borderOp: document.getElementById('cfg-border-op').value,
                         font: document.getElementById('cfg-font').value, align: document.getElementById('cfg-align').value,
                         themeDef: document.getElementById('cfg-theme-def').value, themeShow: document.getElementById('cfg-theme-show').checked,
+                        isVerified: document.getElementById('cfg-verified').checked,
                         name: document.getElementById('cfg-name').value, role: document.getElementById('cfg-role').value,
                         quote: document.getElementById('cfg-quote').value, bio: document.getElementById('cfg-bio').value,
                         s1v: document.getElementById('cfg-s1-v').value, s1l: document.getElementById('cfg-s1-l').value,
@@ -722,7 +768,11 @@
         function triggerCompile() {
             try {
                 document.getElementById('lbl-accent').innerText = document.getElementById('cfg-accent').value;
+                document.getElementById('lbl-cardbg').innerText = document.getElementById('cfg-card-bg').value;
+                document.getElementById('lbl-ovtop').innerText = document.getElementById('cfg-ov-top').value;
+                document.getElementById('lbl-ovbot').innerText = document.getElementById('cfg-ov-bot').value;
                 document.getElementById('lbl-radius').innerText = document.getElementById('cfg-radius').value + 'px';
+                document.getElementById('lbl-blur').innerText = document.getElementById('cfg-blur').value + 'px';
                 document.getElementById('preview-iframe').srcdoc = generateOutputHTML();
                 autoSave();
             } catch(e) { console.warn("Live compilation paused while typing."); }
@@ -1046,7 +1096,6 @@
                         <button class="filter-btn active" onclick="filterProjects('all', this)">All</button>
                         <button class="filter-btn" onclick="filterProjects('apps', this)">Apps</button>
                         <button class="filter-btn" onclick="filterProjects('web-dev', this)">Web Dev</button>
-                        <button class="filter-btn" onclick="filterProjects('games', this)">Games</button>
                     </div>
                     <div class="links-grid" id="projects-grid">${projectsHTML}</div>
                 </div>
@@ -1070,7 +1119,7 @@
         </div>
     </div>
 
-    <!-- QR CODE PROFILE MODAL -->
+    <!-- QR MODAL -->
     <div class="qr-overlay" id="qr-overlay" onclick="closeQRModal()"></div>
     <div class="qr-modal" id="qr-modal">
         <button onclick="closeQRModal()" style="position: absolute; top: 16px; right: 16px; background:var(--icon-bg); border:none; color:var(--text-secondary); width: 36px; height: 36px; border-radius: 50%; font-size:20px; cursor:pointer; z-index:10; transition: 0.2s;"><i class="ri-close-line"></i></button>
@@ -1089,7 +1138,7 @@
         </div>
     </div>
 
-    <!-- PROJECT PREVIEW MODAL -->
+    <!-- PREVIEW MODAL -->
     <div class="preview-overlay" id="preview-overlay" onclick="closePreview()"></div>
     <div class="preview-modal" id="preview-modal">
         <button onclick="closePreview()" style="position: absolute; z-index: 10; top: 16px; right: 16px; background: rgba(0,0,0,0.6); border: none; color: white; width: 36px; height:36px; border-radius:50%; cursor:pointer; backdrop-filter: blur(4px); transition: 0.2s;"><i class="ri-close-line" style="font-size: 20px;"></i></button>
@@ -1124,7 +1173,6 @@
             });
         }
 
-        // PERFECT BLURRED NAVBAR SCROLL LOGIC
         const appScrollNode = document.getElementById('app-container');
         const headerLogo = document.getElementById('top-left-header');
         const profileBox = document.querySelector('.profile-sidebar');
@@ -1200,7 +1248,7 @@
         // --- JSON SAVE & LOAD & INIT ---
         function saveProjectConfig() {
             const config = {
-                version: "5.0",
+                version: "5.1",
                 fields: {
                     seoTitle: document.getElementById('cfg-seo-title').value,
                     seoDesc: document.getElementById('cfg-seo-desc').value,
@@ -1279,7 +1327,7 @@
             const zip = new JSZip();
 
             zip.file("index.html", fullHTML);
-            zip.file("README.md", `# Your Dynamic Portfolio\n\nGenerated via MMS Builder Pro. All your uploaded images have been compressed and encoded directly into the index.html file so it can be hosted anywhere instantly without needing an external assets folder.`);
+            zip.file("README.md", `# Generated Standalone Portfolio\n\nCreated with MMS Builder Pro.\nAll your images and configurations have been bundled into index.html so you can host this anywhere instantly.`);
 
             zip.generateAsync({ type: "blob" }).then(function(content) {
                 saveAs(content, "mms_portfolio_pro_build.zip");
@@ -1290,11 +1338,10 @@
 
         // INIT
         window.onload = () => {
-            const savedBTheme = localStorage.getItem('mms_builder_theme');
-            if(savedBTheme) {
-                document.getElementById('builder-theme-sel').value = savedBTheme;
-                setBuilderTheme(savedBTheme);
-            }
+            const savedBTheme = localStorage.getItem('mms_builder_theme') || 'dark';
+            document.getElementById('builder-theme-sel').value = savedBTheme;
+            setBuilderTheme(savedBTheme);
+
             const savedCache = localStorage.getItem('mms_builder_autosave_v5');
             if(savedCache && document.getElementById('cfg-autosave').checked) {
                 try {
