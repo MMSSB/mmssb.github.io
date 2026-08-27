@@ -652,6 +652,10 @@ body {
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), transparent);
     border-color: rgba(59, 130, 246, 0.2);
 }
+.grid-card:nth-child(3) {
+    background: linear-gradient(135deg, rgba(251, 0, 63, 0.05), transparent);
+    border-color: rgba(251, 0, 63, 0.2);
+}
 
 @keyframes fadeInDown {
     from {
