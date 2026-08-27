@@ -112,6 +112,53 @@
             .mobile-top-bg { display: none !important; } /* Ensure it never shows on desktop */
         }
 
+        /* --- PROFILE AVATAR HOVER OVERLAY --- */
+        .avatar-inner { position: relative; display: inline-block; border-radius: 40px; overflow: hidden; }
+        .avatar-hover-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: white; opacity: 0; transition: opacity 0.3s ease; z-index: 5;
+        }
+        .avatar-wrap:hover .avatar-hover-overlay { opacity: 1; }
+        
+        /* --- QR SHARE MODAL --- */
+        .qr-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 300 !important;
+        }
+        .qr-overlay.active { opacity: 1; pointer-events: auto; }
+        
+        .qr-modal {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -40%);
+            background: var(--sheet-bg); width: 90%; max-width: 360px;
+            border-radius: 24px; border: 1px solid var(--glass-border);
+            opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 310 !important; box-shadow: 0 20px 50px rgba(0,0,0,0.3); display: flex; flex-direction: column;
+        }
+        .qr-modal.active { transform: translate(-50%, -50%); opacity: 1; pointer-events: auto; }
+        
+        .qr-content { padding: 32px 24px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .qr-title { font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 24px; }
+        
+        .qr-selector {
+            display: flex; gap: 8px; margin-bottom: 24px; background: var(--icon-bg);
+            padding: 8px; border-radius: 16px; border: 1px solid var(--glass-border);
+        }
+        .qr-tab {
+            width: 44px; height: 44px; border-radius: 12px; border: none; background: transparent;
+            color: var(--text-secondary); font-size: 20px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.3s ease;
+        }
+        .qr-tab:hover { background: var(--glass-hover); color: var(--text-primary); }
+        .qr-tab.active { background: var(--text-primary); color: var(--bg-base); }
+        
+        .qr-image-container {
+            background: white; padding: 16px; border-radius: 16px; transition: transform 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 16px;
+        }
+        .qr-image-container:hover { transform: scale(1.05); }
+        .qr-image-container img { width: 180px; height: 180px; display: block; transition: opacity 0.3s ease; }
+
         /* --- PROJECT FILTER TABS --- */
         .project-filters {
             display: flex; gap: 8px; margin-bottom: 24px; overflow-x: auto; 
@@ -245,9 +292,16 @@
             
             <!-- LEFT COLUMN: PROFILE SIDEBAR -->
             <div class="profile-sidebar">
-                <div class="avatar-wrap">
+                <!-- UPDATED AVATAR WRAPPER WITH CLICK AND HOVER -->
+                <div class="avatar-wrap" onclick="openQRModal()" style="cursor: pointer;" title="Share Profile">
                     <div class="avatar-glow"></div>
-                    <img src="./assets/images/mms.jpg" alt="MMS Avatar" class="avatar" onerror="this.src='https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=500&h=500&q=80'">
+                    <div class="avatar-inner">
+                        <img src="./assets/images/mms.jpg" alt="MMS Avatar" class="avatar" onerror="this.src='https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=500&h=500&q=80'">
+                        <div class="avatar-hover-overlay">
+                            <i class="ph-bold ph-qr-code" style="font-size: 28px; margin-bottom: 8px;"></i>
+                            <span style="font-weight: 600; font-size: 15px;">Click to Share</span>
+                        </div>
+                    </div>
                 </div>
                 
                 <h1 class="profile-name">
@@ -485,8 +539,46 @@
     </div> <!-- END OF APP CONTAINER -->
 
     <!-- ============================================== -->
-    <!-- MOVED OUTSIDE OF APP CONTAINER FOR Z-INDEX FIX -->
+    <!-- OVERLAYS AND MODALS -->
     <!-- ============================================== -->
+
+    <!-- NEW: QR SHARE MODAL -->
+    <div class="qr-overlay" id="qr-overlay" onclick="closeQRModal()"></div>
+    <div class="qr-modal" id="qr-modal">
+        <button class="close-btn" style="position: absolute; z-index: 10; top: 16px; right: 16px;" onclick="closeQRModal()" aria-label="Close QR">
+            <i class="ri-close-line" style="font-size: 24px;"></i>
+        </button>
+        <div class="qr-content">
+            <h3 class="qr-title">Share Profile</h3>
+            
+            <!-- Link Switcher Buttons (Put your actual links in the single quotes!) -->
+            <div class="qr-selector">
+                <button class="qr-tab active" onclick="switchQR('https://mmssb.github.io/', this)" title="My Website">
+                    <i class="ph-bold ph-globe"></i>
+                </button>
+                <button class="qr-tab" onclick="switchQR('https://github.com/MMSSB', this)" title="GitHub">
+                    <i class="fa-brands fa-github"></i>
+                </button>
+                <button class="qr-tab" onclick="switchQR('https://www.facebook.com/', this)" title="Facebook">
+                    <i class="fa-brands fa-facebook"></i>
+                </button>
+                <button class="qr-tab" onclick="switchQR('https://www.instagram.com/', this)" title="Instagram">
+                    <i class="fa-brands fa-instagram"></i>
+                </button>
+            </div>
+
+            <!-- Clickable QR Image Container -->
+            <div class="qr-image-container">
+                <a href="https://mmssb.github.io/" id="qr-link" target="_blank" title="Click to visit link">
+                    <!-- Automatically generates a QR code based on the URL -->
+                    <img id="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://mmssb.github.io/" alt="QR Code">
+                </a>
+            </div>
+            
+            <p style="color: var(--text-secondary); font-size: 13px; margin-top: 8px;">Scan or click the QR code to visit</p>
+        </div>
+    </div>
+
 
     <!-- ABOUT/INFO BOTTOM SHEET SYSTEM -->
     <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
@@ -520,7 +612,7 @@
         </div>
     </div>
 
-    <!-- PROJECT PREVIEW MODAL/SHEET -->
+    <!-- PROJECT PREVIEW MODAL -->
     <div class="preview-overlay" id="preview-overlay" onclick="closePreview()"></div>
     <div class="preview-modal" id="preview-modal">
         <button class="close-btn" style="z-index: 10; top: 16px; right: 16px; background: rgba(0,0,0,0.5); border: none; color: white;" onclick="closePreview()">
@@ -544,7 +636,7 @@
         </div>
     </div>
 
-    <!-- Script to handle Tabs, Filters, Previews, and Mobile Scroll Header -->
+    <!-- Script Section -->
     <script>
         // --- 1. HANDLE TAB SWITCHING ---
         function switchTab(tabId, clickedElement) {
@@ -593,9 +685,8 @@
         const profileSidebar = document.querySelector('.profile-sidebar');
         
         appContainerNode.addEventListener('scroll', () => {
-            // Only apply the effect on screens narrower than 860px
             if (window.innerWidth < 860) {
-                if (appContainerNode.scrollTop > 45) { // Threshold increased slightly for smoother interaction
+                if (appContainerNode.scrollTop > 45) { 
                     mobileTopBg.classList.add('scrolled');
                     topLeftHeader.classList.add('scrolled-header');
                     profileSidebar.classList.add('scrolled-main-profile');
@@ -607,7 +698,6 @@
             }
         });
 
-        // Ensure it resets properly if the user resizes their window
         window.addEventListener('resize', () => {
             if (window.innerWidth >= 860) {
                 mobileTopBg.classList.remove('scrolled');
@@ -619,6 +709,37 @@
                 profileSidebar.classList.add('scrolled-main-profile');
             }
         });
+
+        // --- 5. NEW: QR MODAL LOGIC ---
+        function openQRModal() {
+            document.getElementById('qr-overlay').classList.add('active');
+            document.getElementById('qr-modal').classList.add('active');
+        }
+
+        function closeQRModal() {
+            document.getElementById('qr-overlay').classList.remove('active');
+            document.getElementById('qr-modal').classList.remove('active');
+        }
+
+        function switchQR(url, btnElement) {
+            // Update active state of buttons
+            document.querySelectorAll('.qr-tab').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+            
+            const qrImg = document.getElementById('qr-img');
+            const qrLink = document.getElementById('qr-link');
+            
+            // Fade out the old QR code
+            qrImg.style.opacity = '0';
+            
+            // Wait for fade out, then swap source and fade back in
+            setTimeout(() => {
+                qrLink.href = url;
+                // Generate a new QR code using a free API based on the selected URL
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+                qrImg.style.opacity = '1';
+            }, 250);
+        }
     </script>
     
     <script src="assets/js/script.js"></script>
