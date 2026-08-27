@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Portfolio Builder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- JSZip for exporting multiple files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        :root {
+            --accent-color: #10b981;
+            --builder-bg: #0f172a;
+            --builder-surface: #1e293b;
+            --builder-text: #f1f5f9;
+            --builder-muted: #94a3b8;
+            --builder-border: #334155;
+            --builder-hover: #334155;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        body {
+            background: var(--builder-bg);
+            color: var(--builder-text);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* BUILDER SIDEBAR */
+        .builder-sidebar {
+            width: 400px;
+            min-width: 400px;
+            height: 100vh;
+            background: var(--builder-surface);
+            border-right: 1px solid var(--builder-border);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+        }
+
+        .builder-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--builder-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .builder-header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-color), #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .builder-tabs {
+            display: flex;
+            padding: 12px;
+            gap: 8px;
+            border-bottom: 1px solid var(--builder-border);
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--builder-muted);
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--builder-bg);
+            color: var(--builder-text);
+        }
+
+        .builder-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .builder-content::-webkit-scrollbar { width: 6px; }
+        .builder-content::-webkit-scrollbar-thumb { background: var(--builder-border); border-radius: 10px; }
+
+        .control-group { margin-bottom: 32px; }
+        .control-group h3 {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--builder-muted);
+            margin-bottom: 16px;
+        }
+
+        .input-row { margin-bottom: 16px; }
+        .input-row label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 8px;
+            color: var(--builder-text);
+        }
+
+        input[type="text"], input[type="url"], textarea, select {
+            width: 100%;
+            background: var(--builder-bg);
+            border: 1px solid var(--builder-border);
+            color: var(--builder-text);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        input:focus, textarea:focus, select:focus { border-color: var(--accent-color); }
+        textarea { resize: vertical; min-height: 80px; }
+
+        input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 6px;
+            background: var(--builder-bg);
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .color-picker-row { display: flex; gap: 10px; align-items: center; }
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            background: none;
+            cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: 1px solid var(--builder-border); border-radius: 8px; }
+
+        .btn-builder {
+            background: var(--accent-color);
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            margin-bottom: 8px;
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-builder:hover { opacity: 0.9; }
+
+        .btn-secondary {
+            background: var(--builder-bg);
+            border: 1px solid var(--builder-border);
+            color: var(--builder-text);
+        }
+
+        .btn-upload {
+            background: var(--builder-bg);
+            border: 1px dashed var(--builder-border);
+            color: var(--builder-muted);
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            display: block;
+            font-size: 14px;
+        }
+        .btn-upload:hover { border-color: var(--accent-color); color: var(--accent-color); }
+
+        .dynamic-item {
+            background: var(--builder-bg);
+            border: 1px solid var(--builder-border);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .dynamic-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .item-controls { display: flex; gap: 6px; }
+        .btn-icon {
+            background: transparent;
+            border: 1px solid var(--builder-border);
+            color: var(--builder-muted);
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .btn-icon:hover { border-color: var(--accent-color); color: var(--accent-color); }
+        .btn-icon.danger:hover { border-color: #ef4444; color: #ef4444; }
+
+        /* PREVIEW AREA */
+        .preview-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #0a0a0c;
+            position: relative;
+        }
+
+        .preview-toolbar {
+            height: 60px;
+            background: var(--builder-surface);
+            border-bottom: 1px solid var(--builder-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+        }
+
+        .device-toggle {
+            display: flex;
+            gap: 8px;
+            background: var(--builder-bg);
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .device-btn {
+            background: transparent;
+            border: none;
+            color: var(--builder-muted);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+
+        .device-btn.active {
+            background: var(--builder-surface);
+            color: var(--builder-text);
+        }
+
+        .preview-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding: 24px;
+        }
+
+        #previewFrame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transition: width 0.3s ease, height 0.3s ease;
+        }
+
+        .device-mobile #previewFrame {
+            width: 390px;
+            height: 844px;
+            border-radius: 40px;
+            border: 8px solid #111;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .menu-toggle {
+            display: none;
+            background: transparent;
+            border: none;
+            color: var(--builder-text);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 900px) {
+            .builder-sidebar {
+                position: absolute;
+                z-index: 100;
+                transform: translateX(-100%);
+            }
+            .builder-sidebar.open { transform: translateX(0); }
+            .menu-toggle { display: block; }
+            .device-btn span { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Builder Controls -->
+    <aside class="builder-sidebar" id="builderSidebar">
+        <div class="builder-header">
+            <h1>Portfolio Builder</h1>
+            <button class="btn-secondary btn-builder" style="width: auto; padding: 8px 12px; margin: 0;" onclick="exportFiles()">
+                <i class="ph ph-download-simple"></i> Export ZIP
+            </button>
+        </div>
+
+        <div class="builder-tabs">
+            <button class="tab-btn active" onclick="switchTab('general', this)">General</button>
+            <button class="tab-btn" onclick="switchTab('content', this)">Profile</button>
+            <button class="tab-btn" onclick="switchTab('links', this)">Links</button>
+            <button class="tab-btn" onclick="switchTab('dock', this)">Dock</button>
+        </div>
+
+        <div class="builder-content">
+            <!-- GENERAL TAB -->
+            <div id="general" class="tab-content active">
+                <div class="control-group">
+                    <h3>Theme & Colors</h3>
+                    <div class="input-row">
+                        <label>Accent Color</label>
+                        <div class="color-picker-row">
+                            <input type="color" id="accentColor" value="#10b981" oninput="syncColor('accentColor', 'accentColorText')">
+                            <input type="text" id="accentColorText" value="#10b981" oninput="syncColor('accentColorText', 'accentColor')" style="flex: 1;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>Images & Backgrounds</h3>
+                    <div class="input-row">
+                        <label>Background Image URL</label>
+                        <input type="url" id="bgImageUrl" placeholder="https://..." oninput="updateState()">
+                    </div>
+                    <label class="btn-upload" for="bgImageUpload">
+                        <i class="ph ph-upload-simple"></i> Or Upload Background Image
+                    </label>
+                    <input type="file" id="bgImageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(event, 'general', 'bgImage')">
+                </div>
+
+                <div class="control-group">
+                    <h3>Layout & Shapes</h3>
+                    <div class="input-row">
+                        <label>Global Border Radius: <span id="brValue">50</span>px</label>
+                        <input type="range" id="borderRadius" min="0" max="50" value="50" oninput="updateState()">
+                    </div>
+                    <div class="input-row">
+                        <label>Avatar Size: <span id="avSizeValue">120</span>px</label>
+                        <input type="range" id="avatarSize" min="80" max="200" value="120" oninput="updateState()">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>QR Code Generator</h3>
+                    <div class="input-row">
+                        <label>QR Code Link</label>
+                        <input type="url" id="qrLink" placeholder="https://yourlink.com" oninput="updateState()">
+                    </div>
+                    <div class="input-row">
+                        <label>QR Code Color</label>
+                        <div class="color-picker-row">
+                            <input type="color" id="qrColor" value="#000000" oninput="updateState()">
+                            <input type="text" id="qrColorText" value="#000000" oninput="syncColor('qrColorText', 'qrColor')" style="flex: 1;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTENT TAB -->
+            <div id="content" class="tab-content">
+                <div class="control-group">
+                    <h3>Profile Info</h3>
+                    <div class="input-row">
+                        <label>Avatar Image URL</label>
+                        <input type="url" id="avatarUrl" placeholder="https://..." oninput="updateState()">
+                    </div>
+                    <label class="btn-upload" for="avatarUpload">
+                        <i class="ph ph-upload-simple"></i> Or Upload Avatar
+                    </label>
+                    <input type="file" id="avatarUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(event, 'content', 'avatarUrl')">
+                    
+                    <div class="input-row" style="margin-top: 16px;">
+                        <label>Name</label>
+                        <input type="text" id="profileName" value="John Doe" oninput="updateState()">
+                    </div>
+                    <div class="input-row">
+                        <label>Role / Title</label>
+                        <input type="text" id="profileRole" value="Software Engineer" oninput="updateState()">
+                    </div>
+                    <div class="input-row">
+                        <label>Bio</label>
+                        <textarea id="profileBio" oninput="updateState()">Passionate developer creating beautiful web experiences.</textarea>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>Stats</h3>
+                    <div class="input-row">
+                        <label>Stat 1 (Value)</label>
+                        <input type="text" id="stat1Val" value="10K" oninput="updateState()">
+                        <label style="margin-top:8px;">Stat 1 (Label)</label>
+                        <input type="text" id="stat1Lab" value="Followers" oninput="updateState()">
+                    </div>
+                    <div class="input-row">
+                        <label>Stat 2 (Value)</label>
+                        <input type="text" id="stat2Val" value="150" oninput="updateState()">
+                        <label style="margin-top:8px;">Stat 2 (Label)</label>
+                        <input type="text" id="stat2Lab" value="Projects" oninput="updateState()">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Status Banner</h3>
+                    <div class="input-row">
+                        <label>Status Title</label>
+                        <input type="text" id="statusTitle" value="Available for work" oninput="updateState()">
+                    </div>
+                    <div class="input-row">
+                        <label>Status Description</label>
+                        <input type="text" id="statusDesc" value="Currently freelancing" oninput="updateState()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- LINKS TAB -->
+            <div id="links" class="tab-content">
+                <div class="control-group">
+                    <h3>Project Links & Cards</h3>
+                    <div id="linksContainer"></div>
+                    <button class="btn-builder btn-secondary" onclick="addLink()">
+                        <i class="ph ph-plus"></i> Add Link/Card
+                    </button>
+                </div>
+            </div>
+
+            <!-- DOCK TAB -->
+            <div id="dock" class="tab-content">
+                <div class="control-group">
+                    <h3>Floating Dock Items</h3>
+                    <div id="dockContainer"></div>
+                    <button class="btn-builder btn-secondary" onclick="addDockItem()">
+                        <i class="ph ph-plus"></i> Add Dock Item
+                    </button>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Preview Area -->
+    <main class="preview-area">
+        <div class="preview-toolbar">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <button class="menu-toggle" onclick="toggleSidebar()"><i class="ph ph-list"></i></button>
+                <div class="device-toggle">
+                    <button class="device-btn active" onclick="setDevice('desktop', this)"><i class="ph ph-monitor"></i> <span>Desktop</span></button>
+                    <button class="device-btn" onclick="setDevice('mobile', this)"><i class="ph ph-device-mobile"></i> <span>Mobile</span></button>
+                </div>
+            </div>
+            <button class="btn-builder" style="width: auto; padding: 8px 16px; margin: 0;" onclick="exportFiles()">
+                <i class="ph ph-download-simple"></i> Export ZIP Files
+            </button>
+        </div>
+        <div class="preview-wrapper" id="previewWrapper">
+            <iframe id="previewFrame" title="Preview"></iframe>
+        </div>
+    </main>
+
+    <script>
+        // Utility to safely escape HTML/Quotes
+        function esc(str) {
+            return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
+        // Global State
+        let builderState = {
+            general: { accentColor: '#10b981', bgImage: '', borderRadius: 50, avatarSize: 120, qrLink: '', qrColor: '#000000' },
+            content: { avatarUrl: '', profileName: 'John Doe', profileRole: 'Software Engineer', profileBio: 'Passionate developer...', stat1Val: '10K', stat1Lab: 'Followers', stat2Val: '150', stat2Lab: 'Projects', statusTitle: 'Available', statusDesc: 'Currently freelancing' },
+            links: [
+                { id: 1, type: 'standard', title: 'My Website', url: 'https://example.com', icon: 'ph-globe', subtitle: 'Check out my work' }
+            ],
+            dock: [
+                { id: 1, icon: 'ph-house', url: '#' },
+                { id: 2, icon: 'ph-github-logo', url: '#' }
+            ]
+        };
+
+        let nextLinkId = 2;
+        let nextDockId = 3;
+
+        // Tab Switching
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // Device Toggle
+        function setDevice(device, btn) {
+            document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const wrapper = document.getElementById('previewWrapper');
+            if (device === 'mobile') wrapper.classList.add('device-mobile');
+            else wrapper.classList.remove('device-mobile');
+        }
+
+        function toggleSidebar() {
+            document.getElementById('builderSidebar').classList.toggle('open');
+        }
+
+        // Sync Color inputs safely
+        function syncColor(textId, pickerId) {
+            let val = document.getElementById(textId).value;
+            if (!val.startsWith('#')) val = '#' + val;
+            if (/^#[0-9A-F]{6}$/i.test(val)) {
+                document.getElementById(pickerId).value = val;
+            }
+            updateState();
+        }
+
+        // Image Upload Handler
+        function handleImageUpload(event, category, key) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    builderState[category][key] = e.target.result;
+                    if (key === 'avatarUrl') document.getElementById('avatarUrl').value = e.target.result;
+                    if (key === 'bgImage') document.getElementById('bgImageUrl').value = e.target.result;
+                    updatePreview();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Update State from all inputs
+        function updateState() {
+            builderState.general.accentColor = document.getElementById('accentColor').value;
+            builderState.general.bgImage = document.getElementById('bgImageUrl').value;
+            builderState.general.borderRadius = document.getElementById('borderRadius').value;
+            builderState.general.avatarSize = document.getElementById('avatarSize').value;
+            builderState.general.qrLink = document.getElementById('qrLink').value;
+            builderState.general.qrColor = document.getElementById('qrColor').value;
+
+            builderState.content.avatarUrl = document.getElementById('avatarUrl').value;
+            builderState.content.profileName = document.getElementById('profileName').value;
+            builderState.content.profileRole = document.getElementById('profileRole').value;
+            builderState.content.profileBio = document.getElementById('profileBio').value;
+            builderState.content.stat1Val = document.getElementById('stat1Val').value;
+            builderState.content.stat1Lab = document.getElementById('stat1Lab').value;
+            builderState.content.stat2Val = document.getElementById('stat2Val').value;
+            builderState.content.stat2Lab = document.getElementById('stat2Lab').value;
+            builderState.content.statusTitle = document.getElementById('statusTitle').value;
+            builderState.content.statusDesc = document.getElementById('statusDesc').value;
+
+            document.getElementById('brValue').innerText = builderState.general.borderRadius;
+            document.getElementById('avSizeValue').innerText = builderState.general.avatarSize;
+
+            updatePreview();
+        }
+
+        // --- LINKS MANAGEMENT ---
+        function renderLinks() {
+            const container = document.getElementById('linksContainer');
+            container.innerHTML = '';
+            builderState.links.forEach((link, index) => {
+                container.innerHTML += `
+                    <div class="dynamic-item">
+                        <div class="dynamic-item-header">
+                            <strong>Link ${index + 1}</strong>
+                            <div class="item-controls">
+                                <button class="btn-icon" onclick="moveItem('links', ${index}, 'up')" title="Move Up"><i class="ph ph-arrow-up"></i></button>
+                                <button class="btn-icon" onclick="moveItem('links', ${index}, 'down')" title="Move Down"><i class="ph ph-arrow-down"></i></button>
+                                <button class="btn-icon danger" onclick="deleteLink(${index})" title="Delete"><i class="ph ph-trash"></i></button>
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <label>Type</label>
+                            <select onchange="updateLinkProp(${index}, 'type', this.value)">
+                                <option value="standard" ${link.type === 'standard' ? 'selected' : ''}>Standard Link</option>
+                                <option value="card" ${link.type === 'card' ? 'selected' : ''}>Large Card</option>
+                            </select>
+                        </div>
+                        <div class="input-row">
+                            <label>Title</label>
+                            <input type="text" value="${esc(link.title)}" oninput="updateLinkProp(${index}, 'title', this.value)">
+                        </div>
+                        ${link.type === 'card' ? `
+                        <div class="input-row">
+                            <label>Subtitle</label>
+                            <input type="text" value="${esc(link.subtitle || '')}" oninput="updateLinkProp(${index}, 'subtitle', this.value)">
+                        </div>
+                        ` : ''}
+                        <div class="input-row">
+                            <label>URL</label>
+                            <input type="url" value="${esc(link.url)}" oninput="updateLinkProp(${index}, 'url', this.value)">
+                        </div>
+                        <div class="input-row">
+                            <label>Phosphor Icon (e.g., ph-globe)</label>
+                            <input type="text" value="${esc(link.icon)}" oninput="updateLinkProp(${index}, 'icon', this.value)">
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function addLink() {
+            builderState.links.push({ id: nextLinkId++, type: 'standard', title: 'New Link', url: '#', icon: 'ph-link', subtitle: '' });
+            renderLinks();
+            updatePreview();
+        }
+
+        function deleteLink(index) {
+            builderState.links.splice(index, 1);
+            renderLinks();
+            updatePreview();
+        }
+
+        function updateLinkProp(index, key, value) {
+            builderState.links[index][key] = value;
+            if (key === 'type') renderLinks(); // Re-render UI if type changes
+            updatePreview();
+        }
+
+        // --- DOCK MANAGEMENT ---
+        function renderDock() {
+            const container = document.getElementById('dockContainer');
+            container.innerHTML = '';
+            builderState.dock.forEach((item, index) => {
+                container.innerHTML += `
+                    <div class="dynamic-item">
+                        <div class="dynamic-item-header">
+                            <strong>Dock Item ${index + 1}</strong>
+                            <div class="item-controls">
+                                <button class="btn-icon" onclick="moveItem('dock', ${index}, 'up')" title="Move Up"><i class="ph ph-arrow-up"></i></button>
+                                <button class="btn-icon" onclick="moveItem('dock', ${index}, 'down')" title="Move Down"><i class="ph ph-arrow-down"></i></button>
+                                <button class="btn-icon danger" onclick="deleteDockItem(${index})" title="Delete"><i class="ph ph-trash"></i></button>
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <label>Icon (e.g., ph-house)</label>
+                            <input type="text" value="${esc(item.icon)}" oninput="updateDockProp(${index}, 'icon', this.value)">
+                        </div>
+                        <div class="input-row">
+                            <label>URL</label>
+                            <input type="url" value="${esc(item.url)}" oninput="updateDockProp(${index}, 'url', this.value)">
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function addDockItem() {
+            builderState.dock.push({ id: nextDockId++, icon: 'ph-plus', url: '#' });
+            renderDock();
+            updatePreview();
+        }
+
+        function deleteDockItem(index) {
+            builderState.dock.splice(index, 1);
+            renderDock();
+            updatePreview();
+        }
+
+        function updateDockProp(index, key, value) {
+            builderState.dock[index][key] = value;
+            updatePreview();
+        }
+
+        // --- MOVE ITEMS ---
+        function moveItem(arrName, index, direction) {
+            let arr = builderState[arrName];
+            if (direction === 'up' && index > 0) {
+                [arr[index], arr[index-1]] = [arr[index-1], arr[index]];
+            } else if (direction === 'down' && index < arr.length - 1) {
+                [arr[index], arr[index+1]] = [arr[index+1], arr[index]];
+            }
+            if (arrName === 'links') renderLinks();
+            if (arrName === 'dock') renderDock();
+            updatePreview();
+        }
+
+        // --- GENERATORS ---
+        function generateHTML(isPreview = false) {
+            let linksHTML = builderState.links.map(link => {
+                if (link.type === 'card') {
+                    return `
+                        <a href="${esc(link.url)}" class="link-card card-large">
+                            <div class="link-icon-wrap"><i class="ph ${esc(link.icon)}"></i></div>
+                            <div class="card-content">
+                                <span class="link-title">${esc(link.title)}</span>
+                                <span class="link-subtitle">${esc(link.subtitle || '')}</span>
+                            </div>
+                            <i class="ph ph-caret-right link-arrow"></i>
+                        </a>
+                    `;
+                }
+                return `
+                    <a href="${esc(link.url)}" class="link-card">
+                        <div class="link-icon-wrap"><i class="ph ${esc(link.icon)}"></i></div>
+                        <span class="link-title">${esc(link.title)}</span>
+                        <i class="ph ph-caret-right link-arrow"></i>
+                    </a>
+                `;
+            }).join('');
+
+            let dockHTML = builderState.dock.map(item => `
+                <a href="${esc(item.url)}" class="nav-item"><i class="ph ${esc(item.icon)}"></i></a>
+            `).join('');
+
+            let qrHTML = builderState.general.qrLink ? `
+                <div class="grid-2">
+                    <div class="grid-card">
+                        <h3 style="margin-bottom: 10px; font-size: 18px;">Scan QR</h3>
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&color=${builderState.general.qrColor.replace('#','')}&data=${encodeURIComponent(builderState.general.qrLink)}" alt="QR Code" style="width: 80px; height: 80px; border-radius: 10px;">
+                    </div>
+                </div>
+            ` : '';
+
+            // FIX: Used <\/script> to prevent the browser from closing the main builder script tag prematurely
+            let cssTag = isPreview ? `<style>${generateCSS()}</style>` : `<link rel="stylesheet" href="style.css">`;
+            let jsTag = isPreview ? `<script>${generateJS()}<\/script>` : `<script src="script.js"><\/script>`;
+            
+            // Safe string concatenation to prevent parser errors
+            let html = `<!DOCTYPE html><html lang="en" data-theme="dark"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${esc(builderState.content.profileName)}</title><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"><script src="https://unpkg.com/@phosphor-icons/web"><\/script>${cssTag}</head><body>`;
+            
+            html += `<div class="dynamic-bg" style="background-image: url('${esc(builderState.general.bgImage)}')"></div><div class="bg-overlay"></div><div class="theme-switcher"><button class="theme-btn" id="theme-btn"><i class="ph ph-moon"></i></button></div><div class="app-container"><div class="layout-wrapper">`;
+            
+            // Profile
+            html += `<div class="profile-sidebar"><div class="avatar-wrap"><div class="avatar-glow"></div><img src="${esc(builderState.content.avatarUrl) || 'https://via.placeholder.com/150'}" class="avatar" style="width: ${builderState.general.avatarSize}px; height: ${builderState.general.avatarSize}px;"></div><h1 class="profile-name">${esc(builderState.content.profileName)} <i class="ph ph-seal-check verified-badge"></i></h1><p class="profile-role">${esc(builderState.content.profileRole)}</p><p class="profile-bio">${esc(builderState.content.profileBio)}</p><div class="stats-row"><div class="stat-item"><span class="stat-val">${esc(builderState.content.stat1Val)}</span><span class="stat-label">${esc(builderState.content.stat1Lab)}</span></div><div class="stat-divider"></div><div class="stat-item"><span class="stat-val">${esc(builderState.content.stat2Val)}</span><span class="stat-label">${esc(builderState.content.stat2Lab)}</span></div></div></div>`;
+            
+            // Content
+            html += `<div class="content-area"><div class="status-banner"><div class="pulse-ring"></div><div class="status-text"><div class="status-title">Status</div><div class="status-desc"><strong>${esc(builderState.content.statusTitle)}</strong> - ${esc(builderState.content.statusDesc)}</div></div></div>${qrHTML}<div class="links-grid">${linksHTML}</div></div>`;
+            
+            // Dock & End
+            html += `</div></div><div class="floating-nav">${dockHTML}</div>${jsTag}</body></html>`;
+            
+            return html;
+        }
+
+        function generateCSS() {
+            // Safely construct CSS
+            let css = `:root { --accent-color: ${builderState.general.accentColor}; --br: ${builderState.general.borderRadius}px; }`;
+            css += `[data-theme="dark"] { --bg-base: #0a0a0c; --text-primary: #fff; --text-secondary: #9ca3af; --glass-bg: rgba(255,255,255,0.03); --glass-border: rgba(255,255,255,0.08); --glass-hover: rgba(255,255,255,0.08); --sheet-bg: #151518; }`;
+            css += `[data-theme="light"] { --bg-base: #f9fafb; --text-primary: #111827; --text-secondary: #4b5563; --glass-bg: rgba(255,255,255,0.6); --glass-border: rgba(0,0,0,0.08); --glass-hover: rgba(255,255,255,0.9); --sheet-bg: #fff; }`;
+            css += `* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }`;
+            css += `body { background: var(--bg-base); color: var(--text-primary); overflow-x: hidden; height: 100vh; }`;
+            css += `.dynamic-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; opacity: 0.3; filter: blur(40px); z-index: 0; }`;
+            css += `.bg-overlay { position: fixed; inset: 0; z-index: 1; background: linear-gradient(180deg, rgba(10,10,12,0.6) 0%, rgba(10,10,12,0.9) 100%); }`;
+            css += `.theme-switcher { position: fixed; top: 24px; right: 24px; z-index: 100; }`;
+            css += `.theme-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-primary); cursor: pointer; backdrop-filter: blur(10px); }`;
+            css += `.app-container { position: relative; z-index: 10; height: 100vh; overflow-y: auto; }`;
+            css += `.layout-wrapper { display: flex; flex-direction: column; max-width: 1200px; margin: 0 auto; padding: 40px 24px 120px; gap: 40px; }`;
+            css += `.profile-sidebar { display: flex; flex-direction: column; align-items: center; text-align: center; }`;
+            css += `.avatar-wrap { position: relative; margin-bottom: 24px; }`;
+            css += `.avatar-glow { position: absolute; inset: -10px; border-radius: 50%; filter: blur(20px); background: linear-gradient(135deg, var(--accent-color), #06b6d4); opacity: 0.25; }`;
+            css += `.avatar { border-radius: 50%; object-fit: cover; position: relative; z-index: 2; border: 2px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.2); }`;
+            css += `.profile-name { font-size: 28px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }`;
+            css += `.verified-badge { color: var(--accent-color); }`;
+            css += `.profile-role { color: var(--text-secondary); font-size: 16px; margin-bottom: 16px; }`;
+            css += `.profile-bio { font-size: 15px; line-height: 1.6; opacity: 0.8; margin-bottom: 24px; max-width: 320px; }`;
+            css += `.stats-row { display: flex; gap: 24px; margin-bottom: 32px; }`;
+            css += `.stat-item { display: flex; flex-direction: column; align-items: center; }`;
+            css += `.stat-val { font-size: 18px; font-weight: 700; }`;
+            css += `.stat-label { font-size: 11px; text-transform: uppercase; color: var(--text-secondary); margin-top: 4px; }`;
+            css += `.stat-divider { width: 1px; height: 30px; background: var(--glass-border); }`;
+            css += `.content-area { display: flex; flex-direction: column; gap: 16px; width: 100%; }`;
+            css += `.status-banner { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 24px; padding: 20px 24px; display: flex; align-items: center; gap: 16px; backdrop-filter: blur(10px); }`;
+            css += `.pulse-ring { width: 12px; height: 12px; border-radius: 50%; background: var(--accent-color); position: relative; }`;
+            css += `.pulse-ring::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--accent-color); animation: pulse 2s infinite; }`;
+            css += `@keyframes pulse { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(2.5); opacity: 0; } }`;
+            css += `.links-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }`;
+            css += `.link-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--br); padding: 16px; display: flex; align-items: center; text-decoration: none; color: var(--text-primary); transition: all 0.3s; backdrop-filter: blur(10px); }`;
+            css += `.link-card:hover { background: var(--glass-hover); transform: scale(1.02); }`;
+            css += `.link-card.card-large { padding: 24px; }`;
+            css += `.link-card.card-large .link-icon-wrap { width: 56px; height: 56px; font-size: 24px; }`;
+            css += `.card-content { display: flex; flex-direction: column; margin-left: 16px; }`;
+            css += `.link-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }`;
+            css += `.link-icon-wrap { width: 48px; height: 48px; border-radius: 14px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; margin-right: 16px; font-size: 20px; color: var(--accent-color); }`;
+            css += `.link-title { flex: 1; font-weight: 600; font-size: 16px; }`;
+            css += `.link-arrow { opacity: 0.5; }`;
+            css += `.floating-nav { position: fixed; z-index: 100; background: var(--glass-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(15px); display: flex; gap: 16px; padding: 12px; bottom: 24px; left: 50%; transform: translateX(-50%); border-radius: var(--br); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }`;
+            css += `.nav-item { color: var(--text-secondary); font-size: 24px; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 50px; text-decoration: none; transition: all 0.3s; }`;
+            css += `.nav-item:hover, .nav-item.active { background: var(--glass-hover); color: var(--accent-color); transform: scale(1.1); }`;
+            css += `@media (min-width: 860px) { .layout-wrapper { flex-direction: row; align-items: flex-start; padding: 100px 24px 100px 100px; gap: 60px; } .profile-sidebar { position: sticky; top: 100px; width: 300px; text-align: left; align-items: flex-start; } .links-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); } .floating-nav { top: 50%; left: 24px; bottom: auto; transform: translateY(-50%); flex-direction: column; } }`;
+            
+            return css;
+        }
+
+        function generateJS() {
+            // Safely construct JS without nested template literals to avoid parser bugs
+            let js = "const themeBtn = document.getElementById('theme-btn');";
+            js += "const htmlEl = document.documentElement;";
+            js += "let isDark = true;";
+            js += "themeBtn.addEventListener('click', () => {";
+            js += "  isDark = !isDark;";
+            js += "  htmlEl.setAttribute('data-theme', isDark ? 'dark' : 'light');";
+            js += "  themeBtn.innerHTML = isDark ? '<i class=\"ph ph-moon\"></i>' : '<i class=\"ph ph-sun\"></i>';";
+            js += "});";
+            return js;
+        }
+
+        // Live Preview Update
+        function updatePreview() {
+            const iframe = document.getElementById('previewFrame');
+            // For preview, we inline everything (isPreview = true)
+            iframe.srcdoc = generateHTML(true);
+        }
+
+        // Export Files as ZIP
+        async function exportFiles() {
+            const zip = new JSZip();
+            
+            zip.file("index.html", generateHTML(false));
+            zip.file("style.css", generateCSS());
+            zip.file("script.js", generateJS());
+            
+            const blob = await zip.generateAsync({type:"blob"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'portfolio-files.zip';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('Export successful! Check your downloads for portfolio-files.zip');
+        }
+
+        // Initialize
+        renderLinks();
+        renderDock();
+        updatePreview();
+    </script>
+</body>
+</html>

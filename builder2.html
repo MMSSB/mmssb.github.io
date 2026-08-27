@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="en" data-builder-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMS Studio | Ultimate App Builder</title>
+    
+    <!-- Fonts & Icon Libraries -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;600;700&family=Inter:wght@400;600;700&family=Space+Grotesk:wght@500;700&family=Roboto:wght@400;500;700&family=Poppins:wght@400;600;700&family=Montserrat:wght@500;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/bold/style.css">
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css">
+    
+    <!-- Export & QR Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+    <style>
+        /* BUILDER CORE VARIABLES */
+        :root {
+            --bg-main: #06070a; --sidebar-bg: #0f1115; --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08); --accent: #10b981;
+            --text-primary: #ffffff; --text-secondary: #94a3b8; --radius-md: 14px;
+        }
+
+        /* BUILDER LIGHT THEME */
+        [data-builder-theme="light"] {
+            --bg-main: #e2e8f0; --sidebar-bg: #ffffff; --card-bg: rgba(0, 0, 0, 0.03);
+            --card-border: rgba(0, 0, 0, 0.1); --accent: #059669;
+            --text-primary: #0f172a; --text-secondary: #475569;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg-main); color: var(--text-primary); display: flex; height: 100vh; overflow: hidden; flex-direction: row; transition: background 0.3s, color 0.3s; }
+
+        /* SIDEBAR & NAV */
+        .studio-sidebar { width: 500px; background: var(--sidebar-bg); border-right: 1px solid var(--card-border); display: flex; flex-direction: column; height: 100%; z-index: 10; flex-shrink: 0; box-shadow: 5px 0 30px rgba(0,0,0,0.2); transition: background 0.3s, border-color 0.3s;}
+        
+        .studio-header { padding: 20px 24px 0; display: flex; flex-direction: column; gap: 16px; background: var(--sidebar-bg); border-bottom: 1px solid var(--card-border);}
+        .studio-header-top { display: flex; align-items: center; justify-content: space-between; }
+        .studio-header h1 { font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 10px; color: var(--text-primary); }
+        .preset-actions { display: flex; gap: 8px; }
+        .preset-btn { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-secondary); padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .preset-btn:hover { color: var(--text-primary); border-color: var(--accent); background: rgba(16, 185, 129, 0.1); }
+
+        .workspace-tabs { display: flex; gap: 8px; padding-bottom: 16px; overflow-x: auto;}
+        .workspace-tabs::-webkit-scrollbar { display: none; }
+        .ws-tab { flex: 1; min-width: 100px; padding: 10px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; font-size: 12px; font-weight: 700; color: var(--text-secondary); cursor: pointer; text-align: center; transition: 0.2s; white-space: nowrap;}
+        .ws-tab.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+        .workspace-panel { display: none; flex: 1; overflow-y: auto; }
+        .workspace-panel.active { display: flex; flex-direction: column; }
+        .workspace-panel::-webkit-scrollbar { width: 6px; }
+        .workspace-panel::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 10px; }
+
+        /* ACCORDIONS */
+        .accordion-item { border-bottom: 1px solid var(--card-border); }
+        .accordion-header { padding: 18px 24px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: transparent; transition: 0.2s; font-weight: 600; font-size: 14px; color: var(--text-primary);}
+        .accordion-header:hover { background: var(--card-bg); }
+        .accordion-header.active { background: var(--card-bg); color: var(--accent); border-left: 3px solid var(--accent); }
+        .accordion-body { display: none; padding: 24px; background: var(--bg-main); border-top: 1px solid var(--card-border);}
+        .accordion-body.active { display: block; animation: slideDown 0.2s ease; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* FORMS & INPUTS */
+        .field { margin-bottom: 16px; }
+        .field:last-child { margin-bottom: 0; }
+        .field label { display: block; font-size: 11.5px; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;}
+        
+        input[type="text"], input[type="number"], textarea, select {
+            width: 100%; background: var(--card-bg); border: 1px solid var(--card-border);
+            color: var(--text-primary); padding: 12px 16px; border-radius: 10px; font-size: 13px; transition: 0.2s; word-wrap: break-word;
+        }
+        input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);}
+        textarea { resize: vertical; min-height: 80px; white-space: pre-wrap; font-family: inherit; line-height: 1.5; }
+
+        .range-wrapper { display: flex; align-items: center; gap: 16px; background: var(--card-bg); padding: 12px 16px; border-radius: 10px; border: 1px solid var(--card-border);}
+        .range-wrapper input[type="range"] { flex: 1; accent-color: var(--accent); cursor: pointer; }
+        .color-picker-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--card-bg); padding: 8px 16px; border-radius: 10px; border: 1px solid var(--card-border);}
+        .color-picker-row input[type="color"] { width: 44px; height: 38px; border: none; border-radius: 8px; cursor: pointer; background: transparent; }
+
+        .icon-select-trigger { display: flex; align-items: center; justify-content: space-between; background: var(--card-bg); border: 1px solid var(--card-border); padding: 10px 16px; border-radius: 10px; cursor: pointer; transition: 0.2s; }
+        .icon-select-trigger:hover { border-color: var(--accent); background: rgba(16, 185, 129, 0.05); }
+        .icon-select-preview { display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 600; color: var(--text-primary); }
+        .icon-select-preview i { font-size: 20px; color: var(--accent); width: 24px; text-align: center; }
+
+        .file-upload-wrapper { position: relative; display: flex; align-items: center; gap: 12px; }
+        .file-upload-btn { background: var(--card-bg); border: 1px dashed var(--card-border); padding: 12px 16px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; transition: 0.2s; flex: 1; justify-content: center; color: var(--text-secondary);}
+        .file-upload-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(16, 185, 129, 0.05);}
+        .file-upload-wrapper input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .image-preview-thumb { width: 46px; height: 46px; border-radius: 8px; object-fit: cover; border: 1px solid var(--card-border); display: none; }
+
+        /* LIST & BLOCK CARDS */
+        .dynamic-item-card { background: var(--bg-main); border: 1px solid var(--card-border); border-radius: 14px; padding: 20px; margin-bottom: 16px; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 3px solid var(--card-border);}
+        .block-card { border-left-color: #3b82f6; padding: 16px;}
+        .remove-item-btn { position: absolute; top: 12px; right: 12px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); width: 30px; height: 30px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;}
+        .remove-item-btn:hover { background: #ef4444; color: white; transform: scale(1.05);}
+        
+        .add-item-btn { width: 100%; padding: 14px; background: rgba(16, 185, 129, 0.05); border: 1px dashed rgba(16, 185, 129, 0.4); color: var(--accent); border-radius: 12px; cursor: pointer; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; text-transform: uppercase; letter-spacing: 1px; margin-top: 8px;}
+        .add-item-btn:hover { background: rgba(16, 185, 129, 0.15); border-style: solid; transform: translateY(-2px);}
+        
+        .add-block-btn { flex: 1; padding: 10px 4px; background: rgba(59, 130, 246, 0.05); border: 1px dashed rgba(59, 130, 246, 0.4); color: #3b82f6; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 11px; display: flex; align-items: center; justify-content: center; gap: 4px; transition: 0.2s; }
+        .add-block-btn:hover { background: rgba(59, 130, 246, 0.15); border-style: solid;}
+
+        /* FOOTER & EXPORT */
+        .studio-footer { padding: 20px 24px; border-top: 1px solid var(--card-border); background: var(--sidebar-bg); }
+        .export-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--accent), #059669); color: #000; border: none; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s; text-transform: uppercase; letter-spacing: 1px;}
+        .export-btn:hover { opacity: 0.95; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);}
+
+        /* PREVIEW AREA */
+        .preview-area { flex: 1; display: flex; flex-direction: column; background: var(--bg-main); position: relative;}
+        .preview-topbar { height: 64px; border-bottom: 1px solid var(--card-border); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; background: var(--sidebar-bg); z-index: 50;}
+        .viewport-controls { display: flex; gap: 6px; background: var(--card-bg); padding: 6px; border-radius: 12px; border: 1px solid var(--card-border);}
+        .viewport-btn { padding: 8px 16px; border-radius: 8px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; transition: 0.2s;}
+        .viewport-btn:hover { color: var(--text-primary); }
+        .viewport-btn.active { background: var(--card-border); color: var(--text-primary); box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
+
+        .preview-frame-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; overflow: hidden; background: radial-gradient(circle at center, var(--card-bg) 0%, transparent 100%); position: relative;}
+        .frame-container { width: 100%; height: 100%; border-radius: 24px; border: 1px solid var(--card-border); overflow: hidden; background: var(--bg-main); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 30px 60px rgba(0,0,0,0.15);}
+        .frame-container.tablet { width: 860px; height: 95%; }
+        .frame-container.mobile { width: 390px; height: 844px; border-radius: 50px; border: 12px solid var(--text-primary); box-shadow: 0 40px 80px rgba(0,0,0,0.2), inset 0 0 0 4px var(--bg-main);}
+        iframe { width: 100%; height: 100%; border: none; background: var(--bg-main);}
+
+        /* ICON MODAL */
+        .icon-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 1000; opacity: 0; pointer-events: none; transition: 0.3s ease; display: flex; align-items: center; justify-content: center; padding: 24px; }
+        .icon-modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .icon-modal { width: 100%; max-width: 800px; height: 85vh; background: var(--sidebar-bg); border: 1px solid var(--card-border); border-radius: 24px; display: flex; flex-direction: column; box-shadow: 0 30px 80px rgba(0,0,0,0.5); overflow: hidden; transform: scale(0.95) translateY(20px); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .icon-modal-overlay.active .icon-modal { transform: scale(1) translateY(0); }
+        
+        .icon-modal-header { padding: 24px; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center; background: var(--bg-main);}
+        .icon-search-bar { padding: 20px 24px; border-bottom: 1px solid var(--card-border); display: flex; flex-direction: column; gap: 16px; background: var(--card-bg); }
+        .icon-filter-pills { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+        .icon-pill { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--card-border); background: var(--bg-main); color: var(--text-secondary); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s;}
+        .icon-pill.active { background: var(--accent); color: #000; border-color: var(--accent); }
+        .icon-modal-grid { flex: 1; overflow-y: auto; padding: 24px; display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 16px; align-content: flex-start;}
+        .icon-card-btn { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 20px 10px; display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: pointer; color: var(--text-secondary); transition: all 0.2s; }
+        .icon-card-btn:hover { border-color: var(--accent); color: var(--text-primary); transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .icon-card-btn i { font-size: 32px; color: var(--text-primary); transition: 0.2s;}
+        .icon-card-btn:hover i { color: var(--accent); transform: scale(1.1);}
+        .icon-card-name { font-size: 11px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: monospace; text-align: center;}
+    </style>
+</head>
+<body onload="initApp()">
+
+    <!-- STUDIO CONTROL PANEL -->
+    <aside class="studio-sidebar">
+        <div class="studio-header">
+            <div class="studio-header-top">
+                <h1><i class="ph-fill ph-codesandbox-logo" style="color: var(--accent); font-size: 26px;"></i> Builder Pro</h1>
+                <div class="preset-actions">
+                    <button class="preset-btn" onclick="saveProjectConfig()" title="Save JSON"><i class="ph-bold ph-floppy-disk"></i></button>
+                    <button class="preset-btn" onclick="document.getElementById('json-load-input').click()" title="Load JSON"><i class="ph-bold ph-folder-open"></i></button>
+                    <input type="file" id="json-load-input" accept=".json" style="display:none;" onchange="loadProjectConfig(event)">
+                </div>
+            </div>
+            
+            <div class="workspace-tabs">
+                <button class="ws-tab active" onclick="switchWorkspace('app', this)"><i class="ph-bold ph-device-mobile"></i> App Config</button>
+                <button class="ws-tab" onclick="switchWorkspace('seo', this)"><i class="ph-bold ph-magnifying-glass"></i> SEO & Meta</button>
+                <button class="ws-tab" onclick="switchWorkspace('settings', this)"><i class="ph-bold ph-gear"></i> Settings</button>
+                <button class="ws-tab" onclick="switchWorkspace('about', this)"><i class="ph-bold ph-info"></i> About</button>
+            </div>
+        </div>
+
+        <!-- WORKSPACE: APP CONFIG -->
+        <div class="workspace-panel active" id="ws-app">
+            
+            <!-- 1. GLOBAL DESIGN -->
+            <div class="accordion-item">
+                <div class="accordion-header active" onclick="toggleAccordion(this)">
+                    <span><i class="ph-bold ph-paint-brush"></i> Design & Theme</span><i class="ph-bold ph-caret-down"></i>
+                </div>
+                <div class="accordion-body active">
+                    <div class="field"><label>Accent Color</label><div class="color-picker-row"><span id="lbl-accent" style="font-family: monospace; font-size: 14px; font-weight: 600;">#10b981</span><input type="color" id="cfg-accent" value="#10b981" oninput="triggerCompile()"></div></div>
+                    <div style="display:flex; gap:12px;">
+                        <div class="field" style="flex:1;"><label>Card BG Color</label><div class="color-picker-row" style="padding: 4px 10px;"><span id="lbl-cardbg" style="font-family: monospace; font-size: 12px;">#ffffff</span><input type="color" id="cfg-card-bg" value="#ffffff" oninput="triggerCompile()" style="height:30px; width:30px;"></div></div>
+                        <div class="field" style="flex:1;"><label>Card Opacity</label><input type="number" id="cfg-card-op" value="0.03" step="0.01" min="0" max="1" oninput="triggerCompile()"></div>
+                    </div>
+                    <div style="display:flex; gap:12px;">
+                        <div class="field" style="flex:1;"><label>Overlay Top Color</label><div class="color-picker-row" style="padding: 4px 10px;"><span id="lbl-ovtop" style="font-family: monospace; font-size: 12px;">#0a0a0c</span><input type="color" id="cfg-ov-top" value="#0a0a0c" oninput="triggerCompile()" style="height:30px; width:30px;"></div></div>
+                        <div class="field" style="flex:1;"><label>Overlay Bottom</label><div class="color-picker-row" style="padding: 4px 10px;"><span id="lbl-ovbot" style="font-family: monospace; font-size: 12px;">#0a0a0c</span><input type="color" id="cfg-ov-bot" value="#0a0a0c" oninput="triggerCompile()" style="height:30px; width:30px;"></div></div>
+                    </div>
+                    <div class="field"><label>Card Border Opacity (0.0 to 1.0)</label><input type="number" id="cfg-border-op" value="0.08" step="0.01" min="0" max="1" oninput="triggerCompile()"></div>
+                    <div class="field"><label>Font Family</label><select id="cfg-font" onchange="triggerCompile()">
+                        <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans</option><option value="'Inter', sans-serif">Inter</option><option value="'Outfit', sans-serif">Outfit</option><option value="'Space Grotesk', sans-serif">Space Grotesk</option><option value="'Poppins', sans-serif">Poppins</option><option value="'Montserrat', sans-serif">Montserrat</option><option value="'Roboto', sans-serif">Roboto</option><option value="'Fira Code', monospace">Fira Code</option>
+                    </select></div>
+                    <div class="field"><label>Profile Alignment</label><select id="cfg-align" onchange="triggerCompile()"><option value="center">Center</option><option value="flex-start">Left</option></select></div>
+                    <div class="field"><label>Button & Modal Radius</label><div class="range-wrapper"><input type="range" id="cfg-radius" min="0" max="40" value="20" oninput="triggerCompile()"><span id="lbl-radius" style="font-family: monospace; font-size: 13px;">20px</span></div></div>
+                    <div class="field"><label>Background Blur</label><div class="range-wrapper"><input type="range" id="cfg-blur" min="0" max="60" value="40" oninput="triggerCompile()"><span id="lbl-blur" style="font-family: monospace; font-size: 13px;">40px</span></div></div>
+                    <div class="field"><label>Background Image</label><div class="file-upload-wrapper"><div class="file-upload-btn"><i class="ph-bold ph-upload-simple"></i> Upload Image</div><input type="file" accept="image/*" onchange="handleImageUpload(event, 'cfg-bg-img-preview', 'bg')"><img id="cfg-bg-img-preview" class="image-preview-thumb"></div></div>
+                </div>
+            </div>
+
+            <!-- 2. PROFILE & IDENTITY -->
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><i class="ph-bold ph-user-circle"></i> Profile & Identity</span><i class="ph-bold ph-caret-down"></i>
+                </div>
+                <div class="accordion-body">
+                    <div class="field"><label>Profile Avatar</label><div class="file-upload-wrapper"><div class="file-upload-btn"><i class="ph-bold ph-image"></i> Upload Avatar</div><input type="file" accept="image/*" onchange="handleImageUpload(event, 'cfg-avatar-preview', 'avatar')"><img id="cfg-avatar-preview" class="image-preview-thumb"></div></div>
+                    <div class="field"><label>Display Name</label><input type="text" id="cfg-name" value="user" oninput="triggerCompile()"></div>
+                    <div class="field" style="display:flex; align-items:center; gap:10px;"><input type="checkbox" id="cfg-verified" checked onchange="triggerCompile()" style="width:18px; height:18px;"> <span style="font-size:13px; font-weight:600;">Verified Badge</span></div>
+                    <div class="field"><label>Role</label><input type="text" id="cfg-role" value="Partner & Business Development" oninput="triggerCompile()"></div>
+                    <div class="field"><label>Motto</label><input type="text" id="cfg-quote" value="Keme Group Specialties (Egypt)" oninput="triggerCompile()"></div>
+                    <div class="field"><label>Bio</label><textarea id="cfg-bio" oninput="triggerCompile()">Graduated from MUST (BIS). Developing Godot games and web applications. Operating within the outsourced ink manufacturing sector since 2022.</textarea></div>
+                    <div style="display: flex; gap: 12px;">
+                        <div class="field" style="flex: 1;"><label>Stat 1 (Val/Lbl)</label><input type="text" id="cfg-s1-v" value="Egypt" oninput="triggerCompile()" style="margin-bottom: 8px;"><input type="text" id="cfg-s1-l" value="Location" oninput="triggerCompile()"></div>
+                        <div class="field" style="flex: 1;"><label>Stat 2 (Val/Lbl)</label><input type="text" id="cfg-s2-v" value="MUST" oninput="triggerCompile()" style="margin-bottom: 8px;"><input type="text" id="cfg-s2-l" value="BIS Graduate" oninput="triggerCompile()"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. CUSTOM PAGES CMS -->
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><i class="ph-bold ph-files"></i> Custom Pages (CMS)</span><i class="ph-bold ph-caret-down"></i>
+                </div>
+                <div class="accordion-body">
+                    <div id="pages-container"></div>
+                    <button class="add-item-btn" onclick="addCustomPage()"><i class="ph-bold ph-plus"></i> Create New Page</button>
+                </div>
+            </div>
+
+            <!-- 4. ABOUT MODAL & SOCIALS -->
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><i class="ph-bold ph-info"></i> About Menu Modal</span><i class="ph-bold ph-caret-down"></i>
+                </div>
+                <div class="accordion-body">
+                    <div class="field"><label>Button Text</label><input type="text" id="cfg-about-btn" value="About & Info" oninput="triggerCompile()"></div>
+                    <div class="field"><label>Button Icon</label><div class="icon-select-trigger" onclick="openIconPicker('aboutBtnIcon')"><div class="icon-select-preview"><i id="preview-ico-aboutBtnIcon" class="ph-bold ph-info"></i> <span id="lbl-ico-aboutBtnIcon">ph-bold ph-info</span></div><i class="ph-bold ph-magnifying-glass"></i></div></div>
+                    <div class="field"><label>Modal Title</label><input type="text" id="cfg-about-title" value="Extended Information" oninput="triggerCompile()"></div>
+                    <label style="font-size: 12px; font-weight: 800; color: var(--accent); margin: 24px 0 12px; display:block; border-bottom: 1px solid var(--card-border); padding-bottom: 8px;">Info Cards</label>
+                    <div id="about-cards-container"></div>
+                    <button class="add-item-btn" onclick="addAboutCard()"><i class="ph-bold ph-plus"></i> Add Info Card</button>
+                    <label style="font-size: 12px; font-weight: 800; color: var(--accent); margin: 32px 0 12px; display:block; border-bottom: 1px solid var(--card-border); padding-bottom: 8px;">Social Links</label>
+                    <div id="about-links-container"></div>
+                    <button class="add-item-btn" onclick="addAboutLink()"><i class="ph-bold ph-plus"></i> Add Social Link</button>
+                </div>
+            </div>
+
+            <!-- 5. SERVICES & PROJECTS -->
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><i class="ph-bold ph-lightning"></i> Services & Projects</span><i class="ph-bold ph-caret-down"></i>
+                </div>
+                <div class="accordion-body">
+                    <label style="font-size: 12px; font-weight: 800; color: var(--accent); margin: 0 0 12px; display:block;">Services List</label>
+                    <div id="services-container"></div>
+                    <button class="add-item-btn" onclick="addService()" style="margin-bottom:32px;"><i class="ph-bold ph-plus"></i> Add Service</button>
+                    
+                    <label style="font-size: 12px; font-weight: 800; color: var(--accent); margin: 0 0 12px; display:block;">Projects Portfolio</label>
+                    <div id="projects-container"></div>
+                    <button class="add-item-btn" onclick="addProject()"><i class="ph-bold ph-plus"></i> Add Project</button>
+                </div>
+            </div>
+
+            <!-- 6. QR & DOCK -->
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><i class="ph-bold ph-dots-nine"></i> Nav Dock & QR Links</span><i class="ph-bold ph-caret-down"></i>
+                </div>
+                <div class="accordion-body">
+                    <label style="font-size: 12px; font-weight: 800; color: var(--accent); margin: 0 0 12px; display:block;">Floating Dock Bar</label>
+                    <div id="dock-container"></div>
+                    <button class="add-item-btn" onclick="addDock()" style="margin-bottom:32px;"><i class="ph-bold ph-plus"></i> Add Nav Button</button>
+                    
+                    <label style="font-size: 12px; font-weight: 800; color: var(--accent); margin: 0 0 12px; display:block;">QR Modal Profiles</label>
+                    <div id="socials-container"></div>
+                    <button class="add-item-btn" onclick="addSocial()"><i class="ph-bold ph-plus"></i> Add QR Profile</button>
+                </div>
+            </div>
+
+            <!-- 7. CUSTOM INJECTORS -->
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><i class="ph-bold ph-code"></i> Advanced Code Injection</span><i class="ph-bold ph-caret-down"></i>
+                </div>
+                <div class="accordion-body">
+                    <div class="field"><label>Custom CSS</label><textarea id="cfg-custom-css" oninput="triggerCompile()" placeholder="/* Override default styles */&#10;.profile-name { color: red; }"></textarea></div>
+                    <div class="field"><label>Custom JavaScript</label><textarea id="cfg-custom-js" oninput="triggerCompile()" placeholder="// Runs after app load&#10;console.log('App Loaded!');"></textarea></div>
+                </div>
+            </div>
+            
+            <div class="studio-footer">
+                <button class="export-btn" onclick="exportFullCodePackage()"><i class="ph-bold ph-archive-box"></i> Compile & Export Full App ZIP</button>
+            </div>
+        </div>
+
+        <!-- WORKSPACE: SEO & META -->
+        <div class="workspace-panel" id="ws-seo" style="padding: 24px;">
+            <h2 style="font-size: 18px; margin-bottom: 24px; border-bottom: 1px solid var(--card-border); padding-bottom: 12px;">Search Engine Optimization</h2>
+            <div class="field"><label>App Title (Browser Tab)</label><input type="text" id="cfg-seo-title" value="MMS | Portfolio" oninput="triggerCompile()"></div>
+            <div class="field"><label>Meta Description (Google Snippet)</label><textarea id="cfg-seo-desc" oninput="triggerCompile()">Professional portfolio and app showcasing web and game development projects.</textarea></div>
+            <div class="field">
+                <label>Favicon (Browser Icon)</label>
+                <div class="file-upload-wrapper">
+                    <div class="file-upload-btn"><i class="ph-bold ph-image"></i> Upload Favicon</div>
+                    <input type="file" accept="image/*" onchange="handleImageUpload(event, 'cfg-favicon-preview', 'favicon')">
+                    <img id="cfg-favicon-preview" src="https://cdn-icons-png.flaticon.com/512/3242/3242236.png" class="image-preview-thumb" style="display: block;">
+                </div>
+            </div>
+        </div>
+
+        <!-- WORKSPACE: BUILDER SETTINGS -->
+        <div class="workspace-panel" id="ws-settings" style="padding: 24px;">
+            <h2 style="font-size: 18px; margin-bottom: 24px; border-bottom: 1px solid var(--card-border); padding-bottom: 12px;">Builder Preferences</h2>
+            <div class="field">
+                <label>Builder UI Theme</label>
+                <select onchange="setBuilderTheme(this.value)" id="builder-theme-sel">
+                    <option value="dark">Dark Mode</option>
+                    <option value="light">Light Mode</option>
+                    <option value="system">System Default</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Generated App Output Theme Default</label>
+                <select id="cfg-theme-def" onchange="triggerCompile()">
+                    <option value="system">System Preference (Auto)</option>
+                    <option value="dark">Dark Theme</option>
+                    <option value="light">Light Theme</option>
+                </select>
+            </div>
+            <div class="field" style="display:flex; align-items:center; gap:10px; background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--card-border); margin-top:24px;">
+                <input type="checkbox" id="cfg-theme-show" checked onchange="triggerCompile()" style="width:20px; height:20px;">
+                <div>
+                    <span style="font-size:14px; font-weight:700; display:block;">Include App Theme Switcher</span>
+                    <span style="font-size:11px; color:var(--text-secondary);">Shows the dark/light toggle in your generated app.</span>
+                </div>
+            </div>
+            <div class="field" style="display:flex; align-items:center; gap:10px; background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--card-border); margin-top:16px;">
+                <input type="checkbox" id="cfg-autosave" checked style="width:20px; height:20px;">
+                <div>
+                    <span style="font-size:14px; font-weight:700; display:block;">Auto-Save Config</span>
+                    <span style="font-size:11px; color:var(--text-secondary);">Automatically caches your changes to local storage.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- WORKSPACE: ABOUT -->
+        <div class="workspace-panel" id="ws-about" style="padding: 24px;">
+            <div style="text-align: center; margin-bottom: 32px;">
+                <i class="ph-fill ph-codesandbox-logo" style="font-size: 64px; color: var(--accent); margin-bottom: 16px;"></i>
+                <h2 style="font-size: 20px;">MMS App Builder Pro</h2>
+                <span style="font-size: 12px; color: var(--text-secondary); background: var(--card-bg); padding: 4px 10px; border-radius: 20px; margin-top: 8px; display: inline-block;">v5.0.0 Ultimate CMS</span>
+            </div>
+            <p style="font-size: 13px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 16px;">The ultimate offline, standalone single-page application generator. Features dynamic routing, unlimited custom pages, robust icon libraries, and an advanced base64 image compiler.</p>
+            <p style="font-size: 13px; line-height: 1.6; color: var(--text-secondary);">No databases. No servers. Just pure front-end perfection compiled straight to your hard drive.</p>
+        </div>
+    </aside>
+
+    <!-- LIVE EMULATOR VIEWPORT -->
+    <main class="preview-area">
+        <div class="preview-topbar">
+            <span style="font-size: 14px; font-weight: 700; color: var(--text-primary);"><i class="ph-bold ph-monitor-play" style="color: var(--accent); margin-right: 6px;"></i> Live Build Engine</span>
+            <div class="viewport-controls">
+                <button class="viewport-btn active" onclick="setViewport('desktop', this)"><i class="ph-bold ph-desktop"></i></button>
+                <button class="viewport-btn" onclick="setViewport('tablet', this)"><i class="ph-bold ph-device-tablet"></i></button>
+                <button class="viewport-btn" onclick="setViewport('mobile', this)"><i class="ph-bold ph-device-mobile"></i></button>
+            </div>
+        </div>
+        <div class="preview-frame-wrap">
+            <div class="frame-container desktop" id="frame-container">
+                <iframe id="preview-iframe"></iframe>
+            </div>
+        </div>
+    </main>
+
+    <!-- MASTER ICON PICKER MODAL -->
+    <div class="icon-modal-overlay" id="icon-modal-overlay" onclick="closeIconPicker(event)">
+        <div class="icon-modal" onclick="event.stopPropagation()">
+            <div class="icon-modal-header">
+                <h3 style="font-size: 18px; font-weight: 800; display:flex; align-items:center; gap:10px;"><i class="ph-fill ph-magic-wand" style="color:var(--accent);"></i> Universal Icon Library</h3>
+                <button onclick="closeIconPicker()" style="background:var(--card-bg); border:1px solid var(--card-border); color:var(--text-secondary); width: 36px; height: 36px; border-radius: 10px; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="ri-close-line"></i></button>
+            </div>
+            <div class="icon-search-bar">
+                <input type="text" id="icon-search-input" class="icon-search-input" placeholder="Search thousands of icons..." oninput="filterIconCatalog()">
+                
+                <div class="icon-filter-pills">
+                    <button class="icon-pill active" onclick="setIconLibFilter('all', this)">All</button>
+                    <button class="icon-pill" onclick="setIconLibFilter('custom', this)"><i class="ph-bold ph-floppy-disk"></i> Custom Saved</button>
+                    <button class="icon-pill" onclick="setIconLibFilter('ph-bold', this)">Phosphor Bold</button>
+                    <button class="icon-pill" onclick="setIconLibFilter('ph', this)">Phosphor Reg</button>
+                    <button class="icon-pill" onclick="setIconLibFilter('fa-solid', this)">FontAwesome</button>
+                    <button class="icon-pill" onclick="setIconLibFilter('fa-brands', this)">Brands</button>
+                    <button class="icon-pill" onclick="setIconLibFilter('ri', this)">Remix</button>
+                </div>
+
+                <!-- CUSTOM ICON INPUT -->
+                <div id="custom-icon-adder" style="display:none; gap:10px; margin-top: 10px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 10px; border: 1px solid var(--card-border);">
+                    <input type="text" id="custom-icon-input" placeholder="Paste CSS class (e.g., 'fa-solid fa-ghost')" style="flex:1;">
+                    <button onclick="saveCustomIcon()" style="background:var(--accent); color:#000; border:none; padding:0 20px; border-radius:8px; font-weight:700; cursor:pointer;">Save Icon</button>
+                </div>
+            </div>
+            <div class="icon-modal-grid" id="icon-modal-grid"></div>
+        </div>
+    </div>
+
+    <!-- BUILDER SCRIPT ENGINE -->
+    <script>
+        // --- 1. CORE DATA & STATE ---
+        const appState = {
+            // customIconTargets: { aboutBtnIcon: "ph-bold ph-info" },
+            // images: {
+            //     bg: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop",
+            //     avatar: "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=500&q=80",
+            //     favicon: "https://cdn-icons-png.flaticon.com/512/3242/3242236.png"
+            // },
+            // customIcons: [ { class: "fa-solid fa-fire", name: "fire custom", lib: "custom" } ],
+            // customPages: [
+            //     {
+            //         id: "contact", title: "Contact Me",
+            //         blocks: [
+            //             { type: "heading", content: "Get in Touch" },
+            //             { type: "text", content: "Feel free to reach out to me for any web or game development inquiries." },
+            //             { type: "card", title: "Email Me", desc: "mms@example.com", icon: "ph-bold ph-envelope", link: "mailto:mms@example.com" },
+            //             { type: "embed", title: "My Favorite Track", url: "https://open.spotify.com/embed/track/3n3Ppam7vgaBg0sSYFMRRo" },
+            //             { type: "button", title: "View Resume", link: "#", icon: "ph-bold ph-download-simple" }
+            //         ]
+            //     }
+            // ],
+            // aboutCards: [
+            //     { icon: "fa-solid fa-cat", color: "#10b981", label: "Cat", value: "Shandawily" },
+            //     { icon: "fa-solid fa-graduation-cap", color: "#3b82f6", label: "Education", value: "Graduated BIS (MUST)" },
+            //     { icon: "fa-solid fa-briefcase", color: "#f59e0b", label: "Company", value: "Keme Group" }
+            // ],
+            // aboutLinks: [ { title: "Github", url: "https://github.com/MMSSB", icon: "fa-brands fa-github" } ],
+            // services: [ 
+            //     { title: "Web Dev", icon: "fa-solid fa-code", desc: "Vanilla JS, HTML, CSS & Electron." },
+            //     { title: "Godot Games", icon: "fa-solid fa-gamepad", desc: "2D Pixel Art game mechanics." },
+            //     { title: "Corporate Dev", icon: "fa-solid fa-briefcase", desc: "Active in outsourced manufacturing since 2022." }
+            // ],
+            // projects: [ 
+            //     { title: "Shandawily's Adventure", cat: "games", link: "#", icon: "fa-solid fa-gamepad", imgBase64: "" },
+            //     { title: "Qashqai Engine Swapper", cat: "apps", link: "#", icon: "fa-solid fa-car", imgBase64: "" },
+            //     { title: "WebDock", cat: "web-dev", link: "https://mmssb.github.io/webdock.com", icon: "fa-solid fa-desktop", imgBase64: "" } 
+            // ],
+            // socials: [ { platform: "website", icon: "ph-bold ph-globe", url: "https://mmssb.github.io/", color: "#10b981" } ],
+            // dock: [
+            //     { icon: "ph-bold ph-house", tooltip: "Home", action: "home", isTab: true },
+            //     { icon: "ph-bold ph-briefcase", tooltip: "Projects", action: "projects", isTab: true },
+            //     { icon: "ph-bold ph-envelope", tooltip: "Contact", action: "contact", isTab: true }
+            // ]
+        };
+
+        // --- 2. WORKSPACE & UI NAVIGATION ---
+        function switchWorkspace(id, btn) {
+            document.querySelectorAll('.ws-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.workspace-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('ws-' + id).classList.add('active');
+        }
+
+        function toggleAccordion(header) {
+            const body = header.nextElementSibling;
+            const wasActive = header.classList.contains('active');
+            document.querySelectorAll('.accordion-header').forEach(h => h.classList.remove('active'));
+            document.querySelectorAll('.accordion-body').forEach(b => b.classList.remove('active'));
+            if (!wasActive) { header.classList.add('active'); body.classList.add('active'); }
+        }
+
+        function setViewport(mode, btn) {
+            document.querySelectorAll('.viewport-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('frame-container').className = 'frame-container ' + mode;
+        }
+
+        function setBuilderTheme(theme) {
+            if(theme === 'system') {
+                const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.setAttribute('data-builder-theme', isDark ? 'dark' : 'light');
+            } else {
+                document.documentElement.setAttribute('data-builder-theme', theme);
+            }
+            localStorage.setItem('mms_builder_theme', theme);
+        }
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if(document.getElementById('builder-theme-sel').value === 'system') setBuilderTheme('system');
+        });
+
+        // --- 3. ICON CATALOG ENGINE ---
+        const commonNouns = ['house', 'user', 'gear', 'heart', 'star', 'envelope', 'phone', 'camera', 'map-pin', 'link', 'check', 'x', 'plus', 'minus', 'image', 'video', 'desktop', 'device-mobile', 'code', 'terminal', 'lightning', 'globe', 'car', 'briefcase', 'info', 'qr-code', 'sparkle', 'download-simple'];
+        const brandNames = ['github', 'facebook', 'instagram', 'twitter', 'linkedin', 'youtube', 'discord', 'tiktok', 'whatsapp'];
+        let ICON_CATALOG = [];
+        brandNames.forEach(b => ICON_CATALOG.push({ class: `fa-brands fa-${b}`, name: b, lib: 'fa-brands' }));
+        commonNouns.forEach(n => {
+            ICON_CATALOG.push({ class: `ph-bold ph-${n}`, name: n.replace('-', ' '), lib: 'ph-bold' });
+            ICON_CATALOG.push({ class: `ph ph-${n}`, name: n.replace('-', ' '), lib: 'ph' });
+            let faName = n.replace('device-mobile', 'mobile');
+            ICON_CATALOG.push({ class: `fa-solid fa-${faName}`, name: faName.replace('-', ' '), lib: 'fa-solid' });
+        });
+        ICON_CATALOG.push({ class: "fa-solid fa-cat", name: "cat", lib: "fa-solid" });
+        ICON_CATALOG.push({ class: "fa-solid fa-cake-candles", name: "cake", lib: "fa-solid" });
+        ICON_CATALOG.push({ class: "fa-solid fa-graduation-cap", name: "graduation cap", lib: "fa-solid" });
+
+        let currentIconTargetKey = null;
+        let currentIconLibFilter = 'all';
+
+        function openIconPicker(targetKey) {
+            currentIconTargetKey = targetKey;
+            document.getElementById('icon-modal-overlay').classList.add('active');
+            renderIconCatalog();
+        }
+        function closeIconPicker(e) { if(!e || e.target.id === 'icon-modal-overlay' || e.currentTarget.tagName === 'BUTTON') document.getElementById('icon-modal-overlay').classList.remove('active'); }
+        function setIconLibFilter(lib, btn) {
+            currentIconLibFilter = lib;
+            document.querySelectorAll('.icon-pill').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('custom-icon-adder').style.display = lib === 'custom' ? 'flex' : 'none';
+            renderIconCatalog();
+        }
+        function filterIconCatalog() { renderIconCatalog(); }
+
+        function renderIconCatalog() {
+            const query = document.getElementById('icon-search-input').value.toLowerCase();
+            const grid = document.getElementById('icon-modal-grid');
+            grid.innerHTML = '';
+
+            let fullCatalog = [...ICON_CATALOG, ...appState.customIcons];
+            const filtered = fullCatalog.filter(ico => {
+                const matchLib = currentIconLibFilter === 'all' || ico.lib === currentIconLibFilter;
+                const matchQuery = ico.name.toLowerCase().includes(query) || ico.class.toLowerCase().includes(query);
+                return matchLib && matchQuery;
+            });
+
+            filtered.slice(0, 150).forEach(ico => {
+                const btn = document.createElement('button');
+                btn.className = 'icon-card-btn'; btn.style = "background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px 8px; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; color: var(--text-secondary); transition: 0.2s;";
+                btn.onclick = () => selectIcon(ico.class);
+                btn.onmouseover = () => { btn.style.borderColor = "var(--accent)"; btn.style.color = "var(--text-primary)"; }
+                btn.onmouseout = () => { btn.style.borderColor = "var(--card-border)"; btn.style.color = "var(--text-secondary)"; }
+                btn.innerHTML = `<i class="${ico.class}" style="font-size:28px; color:var(--text-primary);"></i><span style="font-size:10px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:monospace;">${ico.name || 'custom'}</span>`;
+                grid.appendChild(btn);
+            });
+        }
+
+        function saveCustomIcon() {
+            const val = document.getElementById('custom-icon-input').value.trim();
+            if(val) {
+                appState.customIcons.push({ class: val, name: val, lib: 'custom' });
+                document.getElementById('custom-icon-input').value = '';
+                renderIconCatalog();
+                triggerCompile();
+            }
+        }
+
+        function selectIcon(iconClass) {
+            if (currentIconTargetKey.includes('.')) {
+                const parts = currentIconTargetKey.split('.');
+                if (parts[0] === 'customPages') {
+                    appState.customPages[parts[1]].blocks[parts[3]].icon = iconClass;
+                } else {
+                    appState[parts[0]][parts[1]][parts[2]] = iconClass;
+                }
+            } else {
+                appState.customIconTargets[currentIconTargetKey] = iconClass;
+                const previewEl = document.getElementById('preview-ico-' + currentIconTargetKey);
+                const labelEl = document.getElementById('lbl-ico-' + currentIconTargetKey);
+                if (previewEl) previewEl.className = iconClass;
+                if (labelEl) labelEl.innerText = iconClass;
+            }
+            closeIconPicker(); renderLists(); triggerCompile();
+        }
+
+        // --- 4. IMAGE COMPILER ---
+        function handleImageUpload(event, previewId, stateKey, arrType = null, arrIndex = null, blockIndex = null) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const b64 = e.target.result;
+                    if(previewId) { const img = document.getElementById(previewId); img.src = b64; img.style.display = 'block'; }
+                    if(arrType === 'projects') appState.projects[arrIndex].imgBase64 = b64;
+                    else if(arrType === 'customPages') appState.customPages[arrIndex].blocks[blockIndex].url = b64;
+                    else appState.images[stateKey] = b64;
+                    triggerCompile();
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // --- 5. DYNAMIC CRUD RENDERING ---
+        function renderLists() {
+            // CUSTOM PAGES ENGINE
+            document.getElementById('pages-container').innerHTML = appState.customPages.map((page, pIdx) => `
+                <div class="dynamic-item-card" style="border-left-color: var(--accent);">
+                    <button class="remove-item-btn" onclick="remPage(${pIdx})" title="Delete Page"><i class="ph-bold ph-trash"></i></button>
+                    <div style="display:flex; gap:12px;">
+                        <div class="field" style="flex:1;"><label>Page ID (for URL/Dock linking)</label><input type="text" value="${page.id}" oninput="appState.customPages[${pIdx}].id=this.value; triggerCompile()"></div>
+                        <div class="field" style="flex:1;"><label>Page Title</label><input type="text" value="${page.title}" oninput="appState.customPages[${pIdx}].title=this.value; triggerCompile()"></div>
+                    </div>
+                    
+                    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--card-border);">
+                        <label style="font-size: 11px; color: var(--accent); margin-bottom: 12px; display:block;">PAGE CONTENT BLOCKS</label>
+                        ${page.blocks.map((b, bIdx) => renderBlockUI(b, pIdx, bIdx)).join('')}
+                        <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+                            <button class="add-block-btn" onclick="addBlock(${pIdx}, 'heading')">+ Heading</button>
+                            <button class="add-block-btn" onclick="addBlock(${pIdx}, 'text')">+ Text</button>
+                            <button class="add-block-btn" onclick="addBlock(${pIdx}, 'image')">+ Image</button>
+                            <button class="add-block-btn" onclick="addBlock(${pIdx}, 'card')">+ Card</button>
+                            <button class="add-block-btn" onclick="addBlock(${pIdx}, 'button')">+ Button</button>
+                            <button class="add-block-btn" onclick="addBlock(${pIdx}, 'embed')">+ Embed</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('about-cards-container').innerHTML = appState.aboutCards.map((a, i) => `
+                <div class="dynamic-item-card">
+                    <button class="remove-item-btn" onclick="remItem('aboutCards', ${i})"><i class="ph-bold ph-trash"></i></button>
+                    <div style="display:flex; gap:12px;">
+                        <div class="field" style="flex:1;"><label>Label</label><input type="text" value="${a.label}" oninput="appState.aboutCards[${i}].label=this.value; triggerCompile()"></div>
+                        <div class="field" style="flex:1;"><label>Value</label><input type="text" value="${a.value}" oninput="appState.aboutCards[${i}].value=this.value; triggerCompile()"></div>
+                    </div>
+                    <div style="display:flex; gap:12px; align-items:flex-end;">
+                        <div class="field" style="flex:1;"><label>Icon</label><div class="icon-select-trigger" onclick="openIconPicker('aboutCards.${i}.icon')"><div class="icon-select-preview"><i class="${a.icon}" style="color:${a.color}"></i></div></div></div>
+                        <div class="field"><label>Color</label><input type="color" value="${a.color}" oninput="appState.aboutCards[${i}].color=this.value; triggerCompile()" style="width:46px;height:44px;padding:0;"></div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('about-links-container').innerHTML = appState.aboutLinks.map((l, i) => `
+                <div class="dynamic-item-card"><button class="remove-item-btn" onclick="remItem('aboutLinks', ${i})"><i class="ph-bold ph-trash"></i></button>
+                <div style="display:flex; gap:12px;"><div class="field" style="flex:1;"><label>Title</label><input type="text" value="${l.title}" oninput="appState.aboutLinks[${i}].title=this.value; triggerCompile()"></div><div class="field" style="flex:1;"><label>URL</label><input type="text" value="${l.url}" oninput="appState.aboutLinks[${i}].url=this.value; triggerCompile()"></div></div>
+                <div class="field"><label>Icon</label><div class="icon-select-trigger" onclick="openIconPicker('aboutLinks.${i}.icon')"><div class="icon-select-preview"><i class="${l.icon}"></i> <span>${l.icon}</span></div></div></div></div>
+            `).join('');
+
+            document.getElementById('services-container').innerHTML = appState.services.map((s, i) => `
+                <div class="dynamic-item-card"><button class="remove-item-btn" onclick="remItem('services', ${i})"><i class="ph-bold ph-trash"></i></button><div class="field"><label>Title</label><input type="text" value="${s.title}" oninput="appState.services[${i}].title=this.value; triggerCompile()"></div><div class="field"><label>Icon</label><div class="icon-select-trigger" onclick="openIconPicker('services.${i}.icon')"><div class="icon-select-preview"><i class="${s.icon}"></i></div></div></div><div class="field"><label>Description</label><textarea oninput="appState.services[${i}].desc=this.value; triggerCompile()">${s.desc}</textarea></div></div>
+            `).join('');
+
+            document.getElementById('projects-container').innerHTML = appState.projects.map((p, i) => `
+                <div class="dynamic-item-card"><button class="remove-item-btn" onclick="remItem('projects', ${i})"><i class="ph-bold ph-trash"></i></button><div class="field"><label>Title</label><input type="text" value="${p.title}" oninput="appState.projects[${i}].title=this.value; triggerCompile()"></div><div style="display:flex; gap:12px;"><div class="field" style="flex:1;"><label>Category</label><input type="text" value="${p.cat}" oninput="appState.projects[${i}].cat=this.value; triggerCompile()"></div><div class="field" style="flex:1;"><label>Icon</label><div class="icon-select-trigger" onclick="openIconPicker('projects.${i}.icon')"><div class="icon-select-preview"><i class="${p.icon}"></i></div></div></div></div><div class="field"><label>Live URL</label><input type="text" value="${p.link}" oninput="appState.projects[${i}].link=this.value; triggerCompile()"></div><div class="field"><label>Thumbnail</label><div class="file-upload-wrapper"><div class="file-upload-btn"><i class="ph-bold ph-image"></i> Upload</div><input type="file" accept="image/*" onchange="handleImageUpload(event, 'proj-img-${i}', null, 'projects', ${i})"><img id="proj-img-${i}" src="${p.imgBase64}" class="image-preview-thumb" style="display: ${p.imgBase64 ? 'block' : 'none'};"></div></div></div>
+            `).join('');
+
+            document.getElementById('socials-container').innerHTML = appState.socials.map((s, i) => `
+                <div class="dynamic-item-card"><button class="remove-item-btn" onclick="remItem('socials', ${i})"><i class="ph-bold ph-trash"></i></button><div style="display:flex; gap:12px;"><div class="field" style="flex:1;"><label>Platform Name</label><input type="text" value="${s.platform}" oninput="appState.socials[${i}].platform=this.value; triggerCompile()"></div><div class="field" style="flex:1;"><label>Brand Color</label><input type="color" value="${s.color}" oninput="appState.socials[${i}].color=this.value; triggerCompile()" style="width:100%;height:44px;padding:0;"></div></div><div class="field"><label>Icon</label><div class="icon-select-trigger" onclick="openIconPicker('socials.${i}.icon')"><div class="icon-select-preview"><i class="${s.icon}"></i></div></div></div><div class="field"><label>Profile URL</label><input type="text" value="${s.url}" oninput="appState.socials[${i}].url=this.value; triggerCompile()"></div></div>
+            `).join('');
+
+            document.getElementById('dock-container').innerHTML = appState.dock.map((d, i) => `
+                <div class="dynamic-item-card"><button class="remove-item-btn" onclick="remItem('dock', ${i})"><i class="ph-bold ph-trash"></i></button><div style="display:flex; gap:12px;"><div class="field" style="flex:1;"><label>Tooltip</label><input type="text" value="${d.tooltip}" oninput="appState.dock[${i}].tooltip=this.value; triggerCompile()"></div><div class="field" style="flex:1;"><label>Icon</label><div class="icon-select-trigger" onclick="openIconPicker('dock.${i}.icon')"><div class="icon-select-preview"><i class="${d.icon}"></i></div></div></div></div><div class="field"><label>Target ID or URL</label><input type="text" value="${d.action}" oninput="appState.dock[${i}].action=this.value; triggerCompile()"></div><div class="field" style="display:flex; align-items:center; gap:10px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;"><input type="checkbox" ${d.isTab ? 'checked' : ''} onchange="appState.dock[${i}].isTab=this.checked; triggerCompile()" style="width: 16px; height: 16px;"><span style="font-size:12px; color:var(--text-secondary); font-weight: 600;">Is internal page?</span></div></div>
+            `).join('');
+        }
+
+        // --- BLOCK UI GENERATOR ---
+        function renderBlockUI(b, pIdx, bIdx) {
+            let inner = '';
+            if(b.type === 'heading') inner = `<input type="text" value="${b.content}" oninput="appState.customPages[${pIdx}].blocks[${bIdx}].content=this.value; triggerCompile()">`;
+            if(b.type === 'text') inner = `<textarea oninput="appState.customPages[${pIdx}].blocks[${bIdx}].content=this.value; triggerCompile()">${b.content}</textarea>`;
+            if(b.type === 'image') inner = `<div class="file-upload-wrapper"><div class="file-upload-btn"><i class="ph-bold ph-image"></i> Upload Img</div><input type="file" accept="image/*" onchange="handleImageUpload(event, 'pimg-${pIdx}-${bIdx}', null, 'customPages', ${pIdx}, ${bIdx})"><img id="pimg-${pIdx}-${bIdx}" src="${b.url}" class="image-preview-thumb" style="display: ${b.url ? 'block' : 'none'};"></div>`;
+            if(b.type === 'button') inner = `
+                <input type="text" placeholder="Button Text" value="${b.title}" oninput="appState.customPages[${pIdx}].blocks[${bIdx}].title=this.value; triggerCompile()" style="margin-bottom:8px;">
+                <input type="text" placeholder="Link URL" value="${b.link}" oninput="appState.customPages[${pIdx}].blocks[${bIdx}].link=this.value; triggerCompile()" style="margin-bottom:8px;">
+                <div class="icon-select-trigger" onclick="openIconPicker('customPages.${pIdx}.blocks.${bIdx}.icon')"><div class="icon-select-preview"><i class="${b.icon}"></i></div></div>`;
+            if(b.type === 'embed') inner = `
+                <input type="text" placeholder="iFrame Source URL (Spotify/YouTube/Maps)" value="${b.url}" oninput="appState.customPages[${pIdx}].blocks[${bIdx}].url=this.value; triggerCompile()">`;
+            if(b.type === 'card') inner = `
+                <input type="text" placeholder="Title" value="${b.title}" oninput="appState.customPages[${pIdx}].blocks[${bIdx}].title=this.value; triggerCompile()" style="margin-bottom:8px;">
+                <input type="text" placeholder="Description" value="${b.desc}" oninput="appState.customPages[${pIdx}].blocks[${bIdx}].desc=this.value; triggerCompile()" style="margin-bottom:8px;">
+                <input type="text" placeholder="Link URL" value="${b.link}" oninput="appState.customPages[${pIdx}].blocks[${bIdx}].link=this.value; triggerCompile()" style="margin-bottom:8px;">
+                <div class="icon-select-trigger" onclick="openIconPicker('customPages.${pIdx}.blocks.${bIdx}.icon')"><div class="icon-select-preview"><i class="${b.icon}"></i></div></div>`;
+            return `
+            <div class="dynamic-item-card block-card" style="padding: 12px; margin-bottom: 8px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span style="font-size:10px; font-weight:800; color:#3b82f6; text-transform:uppercase;">${b.type} block</span>
+                    <button style="background:transparent; border:none; color:#ef4444; cursor:pointer;" onclick="remBlock(${pIdx}, ${bIdx})"><i class="ph-bold ph-trash"></i></button>
+                </div>
+                <div class="field" style="margin:0;">${inner}</div>
+            </div>`;
+        }
+
+        function addCustomPage() { appState.customPages.push({ id: `page_${Date.now()}`, title: "New Page", blocks: [] }); renderLists(); triggerCompile(); }
+        function remPage(i) { appState.customPages.splice(i, 1); renderLists(); triggerCompile(); }
+        function addBlock(pIdx, type) { 
+            let b = { type: type };
+            if(type === 'heading') b.content = 'New Heading';
+            if(type === 'text') b.content = 'Type your content here...';
+            if(type === 'image') b.url = '';
+            if(type === 'button') { b.title = 'Click Me'; b.link = '#'; b.icon = 'ph-bold ph-link';}
+            if(type === 'embed') { b.url = ''; }
+            if(type === 'card') { b.title = 'Card Title'; b.desc = 'Description'; b.icon = 'ph-bold ph-star'; b.link = '#'; }
+            appState.customPages[pIdx].blocks.push(b); renderLists(); triggerCompile(); 
+        }
+        function remBlock(pIdx, bIdx) { appState.customPages[pIdx].blocks.splice(bIdx, 1); renderLists(); triggerCompile(); }
+
+        function addAboutCard() { appState.aboutCards.push({ icon: "fa-solid fa-star", color: "#10b981", label: "New Stat", value: "Details" }); renderLists(); triggerCompile(); }
+        function addAboutLink() { appState.aboutLinks.push({ title: "New Link", url: "https://example.com", icon: "fa-solid fa-globe" }); renderLists(); triggerCompile(); }
+        function addService() { appState.services.push({title: "New Service", icon: "fa-solid fa-star", desc: "Description text"}); renderLists(); triggerCompile(); }
+        function addProject() { appState.projects.push({title: "New Project", cat: "web-dev", link: "#", icon: "fa-solid fa-folder", imgBase64: ""}); renderLists(); triggerCompile(); }
+        function addSocial() { appState.socials.push({platform: "new", icon: "ph-bold ph-link", url: "#", color: "#10b981"}); renderLists(); triggerCompile(); }
+        function addDock() { appState.dock.push({icon: "ph-bold ph-star", tooltip: "New", action: "#", isTab: false}); renderLists(); triggerCompile(); }
+        function remItem(arr, index) { appState[arr].splice(index, 1); renderLists(); triggerCompile(); }
+
+        // --- 6. AUTO-SAVE & COMPILER ---
+        function autoSave() {
+            if(document.getElementById('cfg-autosave').checked) {
+                const cfg = {
+                    fields: {
+                        seoTitle: document.getElementById('cfg-seo-title').value, seoDesc: document.getElementById('cfg-seo-desc').value,
+                        accent: document.getElementById('cfg-accent').value,
+                        radius: document.getElementById('cfg-radius').value, blur: document.getElementById('cfg-blur').value,
+                        cardBg: document.getElementById('cfg-card-bg').value, cardOp: document.getElementById('cfg-card-op').value,
+                        ovTop: document.getElementById('cfg-ov-top').value, ovBot: document.getElementById('cfg-ov-bot').value,
+                        borderOp: document.getElementById('cfg-border-op').value,
+                        font: document.getElementById('cfg-font').value, align: document.getElementById('cfg-align').value,
+                        themeDef: document.getElementById('cfg-theme-def').value, themeShow: document.getElementById('cfg-theme-show').checked,
+                        name: document.getElementById('cfg-name').value, role: document.getElementById('cfg-role').value,
+                        quote: document.getElementById('cfg-quote').value, bio: document.getElementById('cfg-bio').value,
+                        s1v: document.getElementById('cfg-s1-v').value, s1l: document.getElementById('cfg-s1-l').value,
+                        s2v: document.getElementById('cfg-s2-v').value, s2l: document.getElementById('cfg-s2-l').value,
+                        aboutBtnTxt: document.getElementById('cfg-about-btn').value, aboutTitle: document.getElementById('cfg-about-title').value,
+                        customCSS: document.getElementById('cfg-custom-css').value, customJS: document.getElementById('cfg-custom-js').value
+                    },
+                    appState: appState
+                };
+                localStorage.setItem('mms_builder_autosave_v5', JSON.stringify(cfg));
+            }
+        }
+
+        function triggerCompile() {
+            try {
+                document.getElementById('lbl-accent').innerText = document.getElementById('cfg-accent').value;
+                document.getElementById('lbl-radius').innerText = document.getElementById('cfg-radius').value + 'px';
+                document.getElementById('preview-iframe').srcdoc = generateOutputHTML();
+                autoSave();
+            } catch(e) { console.warn("Live compilation paused while typing."); }
+        }
+
+        function hexToRgba(hex, opacity) {
+            let c; if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){ c= hex.substring(1).split(''); if(c.length== 3){ c= [c[0], c[0], c[1], c[1], c[2], c[2]]; } c= '0x'+c.join(''); return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+','+opacity+')'; }
+            return `rgba(255,255,255,${opacity})`;
+        }
+
+        function generateOutputHTML() {
+            const seoT = document.getElementById('cfg-seo-title').value || "App";
+            const seoD = document.getElementById('cfg-seo-desc').value || "";
+            const accent = document.getElementById('cfg-accent').value;
+            const radius = document.getElementById('cfg-radius').value;
+            const blur = document.getElementById('cfg-blur').value;
+            const font = document.getElementById('cfg-font').value;
+            const align = document.getElementById('cfg-align').value;
+            const themeDef = document.getElementById('cfg-theme-def').value;
+            const themeShow = document.getElementById('cfg-theme-show').checked;
+            const isVerified = document.getElementById('cfg-verified').checked;
+            const cBg = document.getElementById('cfg-card-bg').value;
+            const cOp = document.getElementById('cfg-card-op').value;
+            const bOp = document.getElementById('cfg-border-op').value;
+            const ovTop = document.getElementById('cfg-ov-top').value;
+            const ovBot = document.getElementById('cfg-ov-bot').value;
+            
+            const customCSS = document.getElementById('cfg-custom-css').value;
+            const customJS = document.getElementById('cfg-custom-js').value;
+
+            const name = document.getElementById('cfg-name').value;
+            const role = document.getElementById('cfg-role').value;
+            const quote = document.getElementById('cfg-quote').value;
+            const bio = document.getElementById('cfg-bio').value;
+            const s1v = document.getElementById('cfg-s1-v').value; const s1l = document.getElementById('cfg-s1-l').value;
+            const s2v = document.getElementById('cfg-s2-v').value; const s2l = document.getElementById('cfg-s2-l').value;
+
+            const aboutBtnTxt = document.getElementById('cfg-about-btn').value;
+            const aboutBtnIco = appState.customIconTargets.aboutBtnIcon || "ph-bold ph-info";
+            const aboutTitle = document.getElementById('cfg-about-title').value;
+
+            const calcGlassBg = hexToRgba(cBg, cOp);
+            const calcGlassHov = hexToRgba(cBg, parseFloat(cOp) + 0.05);
+            const calcBorder = hexToRgba(cBg === '#ffffff' ? '#ffffff' : '#000000', bOp);
+            const calcOvTop = hexToRgba(ovTop, 0.6);
+            const calcOvBot = hexToRgba(ovBot, 0.95);
+
+            // Generator Map
+            const aboutCardsHTML = appState.aboutCards.map(a => `<div class="grid-card"><i class="${a.icon}" style="font-size: 24px; color: ${a.color}; margin-bottom: 8px;"></i><span style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 1px;">${a.label}</span><span style="font-weight: 600; font-size: 14px; margin-top: 4px; word-wrap: break-word;">${a.value}</span></div>`).join('');
+            const aboutLinksHTML = appState.aboutLinks.map(l => `<a href="${l.url}" title="${l.title}" target="_blank" style="color: var(--text-secondary); transition: 0.2s;"><i class="${l.icon}" style="font-size: 28px;"></i></a>`).join('');
+            const servicesHTML = appState.services.map(s => `<div class="link-card highlight" style="align-items: flex-start; flex-direction: column; cursor: default;"><div class="link-icon-wrap" style="margin-bottom: 12px;"><i class="${s.icon}" style="font-size: 20px; color: var(--text-primary);"></i></div><span class="link-title" style="margin-bottom: 4px;">${s.title}</span><span style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">${s.desc}</span></div>`).join('');
+            const projectsHTML = appState.projects.map(p => { const imgSource = p.imgBase64 || "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=500&q=80"; return `<div class="link-card project-card" data-category="${p.cat}" style="cursor: pointer;" onclick="openPreview('${(p.title||'').replace(/'/g, "\\'")}', '${(p.cat||'').replace(/'/g, "\\'")}', '${p.link}', '${imgSource}')"><div class="link-icon-wrap"><i class="${p.icon}" style="font-size: 20px; color: var(--text-primary);"></i></div><div style="display: flex; flex-direction: column; flex: 1; overflow: hidden;"><span class="link-title">${p.title}</span><span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px;">${p.cat}</span></div></div>`;}).join('');
+            const dockHTML = appState.dock.map((d, i) => { if(d.isTab) return `<a href="javascript:void(0)" class="nav-item ${i===0?'active':''}" onclick="switchTab('${d.action}', this)" title="${d.tooltip}"><i class="${d.icon}"></i></a>`; return `<a href="${d.action}" target="_blank" class="nav-item" title="${d.tooltip}"><i class="${d.icon}"></i></a>`; }).join('');
+            const qrTabsHTML = appState.socials.map((s, i) => `<button class="qr-tab ${i===0?'active':''}" onclick="switchQR('${s.url}', this, '${s.color}', '${s.icon}')" title="${s.platform}"><i class="${s.icon}"></i></button>`).join('');
+
+            const firstSocialUrl = appState.socials.length > 0 ? appState.socials[0].url : '#';
+            const firstSocialIcon = appState.socials.length > 0 ? appState.socials[0].icon : '';
+            const firstSocialColor = appState.socials.length > 0 ? appState.socials[0].color : accent;
+
+            // CUSTOM PAGES HTML COMPILER
+            const customPagesHTML = appState.customPages.map(page => `
+                <div id="${page.id}-section" class="tab-section">
+                    <h2 style="font-size: 24px; font-weight: 800; margin: 24px 0 24px 0; padding-left: 8px;">${page.title}</h2>
+                    <div class="custom-page-content" style="display:flex; flex-direction:column; gap:16px;">
+                        ${page.blocks.map(b => {
+                            if(b.type === 'heading') return `<h3 style="font-size:18px; font-weight:700; margin-top:16px;">${b.content}</h3>`;
+                            if(b.type === 'text') return `<div class="info-card"><p style="font-size:15px; color:var(--text-primary); white-space:pre-wrap;">${b.content}</p></div>`;
+                            if(b.type === 'image') return `<img src="${b.url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&q=80'}" style="width:100%; border-radius:var(--br); border:1px solid var(--glass-border); object-fit:cover;">`;
+                            if(b.type === 'button') return `<a href="${b.link}" target="_blank" class="btn primary" style="background:var(--text-primary); color:var(--bg-base); text-decoration:none;"><i class="${b.icon}"></i> ${b.title}</a>`;
+                            if(b.type === 'embed') return `<div style="border-radius:var(--br); overflow:hidden; border:1px solid var(--glass-border);"><iframe src="${b.url}" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>`;
+                            if(b.type === 'card') return `<a href="${b.link}" target="_blank" class="link-card highlight" style="text-decoration:none;"><div class="link-icon-wrap"><i class="${b.icon}" style="font-size: 20px; color: var(--text-primary);"></i></div><div style="display:flex; flex-direction:column; flex:1;"><span class="link-title" style="margin-bottom: 4px;">${b.title}</span><span style="font-size: 13px; color: var(--text-secondary);">${b.desc}</span></div></a>`;
+                            return '';
+                        }).join('')}
+                    </div>
+                </div>
+            `).join('');
+
+            let themeHTML = themeShow ? `
+    <div class="theme-switcher">
+        <button class="theme-btn" onclick="document.getElementById('theme-dropdown').classList.toggle('active')"><i class="ph-bold ph-palette"></i></button>
+        <div class="theme-dropdown" id="theme-dropdown">
+            <button class="theme-option" onclick="applyTheme('light')"><i class="ph-bold ph-sun"></i> Light</button>
+            <button class="theme-option" onclick="applyTheme('dark')"><i class="ph-bold ph-moon"></i> Dark</button>
+            <button class="theme-option" onclick="applyTheme('system')"><i class="ph-bold ph-desktop"></i> System</button>
+        </div>
+    </div>` : '';
+
+            let themeJS = themeShow ? `
+        function applyTheme(theme) {
+            if (theme === 'system') {
+                const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            } else { document.documentElement.setAttribute('data-theme', theme); }
+            localStorage.setItem('theme', theme);
+            document.getElementById('theme-dropdown').classList.remove('active');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if (localStorage.getItem('theme') === 'system' || !localStorage.getItem('theme')) applyTheme('system');
+        });` : '';
+
+            return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>${seoT}</title>
+    <meta name="description" content="${seoD}">
+    <link rel="icon" href="${appState.images.favicon}" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;600;700&family=Inter:wght@400;600;700&family=Space+Grotesk:wght@500;700&family=Roboto:wght@400;500;700&family=Poppins:wght@400;600;700&family=Montserrat:wght@500;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/bold/style.css">
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.5.0/lib/qr-code-styling.min.js"><\/script>
+    
+    <script>
+        const savedTheme = localStorage.getItem('theme') || '${themeDef}';
+        if (savedTheme === 'system') {
+            const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        } else { document.documentElement.setAttribute('data-theme', savedTheme); }
+    <\/script>
+    
+    <style>
+        :root {
+            --accent-color: ${accent}; --br: ${radius}px;
+            --bg-base: #0a0a0c; --text-primary: #ffffff; --text-secondary: #9ca3af;
+            --glass-bg: ${calcGlassBg}; --glass-border: ${calcBorder}; --glass-hover: ${calcGlassHov};
+            --bg-overlay-start: ${calcOvTop}; --bg-overlay-end: ${calcOvBot};
+            --sheet-bg: #151518; --icon-bg: rgba(255,255,255,0.05);
+        }
+        [data-theme="light"] {
+            --bg-base: #f8fafc; --text-primary: #0f172a; --text-secondary: #475569;
+            --glass-bg: ${calcGlassBg}; --glass-border: ${calcBorder}; --glass-hover: ${calcGlassHov};
+            --bg-overlay-start: rgba(248,250,252,0.5); --bg-overlay-end: rgba(248,250,252,0.95);
+            --sheet-bg: #ffffff; --icon-bg: rgba(0,0,0,0.04);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: ${font}; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-base); color: var(--text-primary); overflow-x: hidden; height: 100vh; width: 100vw; transition: background-color 0.3s ease, color 0.3s ease; }
+        
+        .dynamic-bg { position: fixed; inset: 0; background-image: url('${appState.images.bg}'); background-size: cover; background-position: center; opacity: 0.4; filter: blur(${blur}px); z-index: 0; transform: scale(1.1); }
+        .bg-overlay { position: fixed; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(180deg, var(--bg-overlay-start) 0%, var(--bg-overlay-end) 100%); }
+
+        .theme-switcher { position: fixed; top: 24px; right: 24px; z-index: 100; }
+        .theme-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-primary); display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: 0.2s; }
+        .theme-btn:hover { background: var(--glass-hover); transform: scale(1.05); }
+        .theme-dropdown { position: absolute; top: calc(100% + 12px); right: 0; background: var(--glass-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 16px; padding: 8px; display: flex; flex-direction: column; gap: 4px; min-width: 150px; opacity: 0; visibility: hidden; transform: translateY(-10px); transition: 0.2s; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+        .theme-dropdown.active { opacity: 1; visibility: visible; transform: translateY(0); }
+        .theme-option { background: transparent; border: none; color: var(--text-secondary); padding: 10px 14px; border-radius: 10px; display: flex; align-items: center; gap: 12px; cursor: pointer; font-size: 14px; font-weight: 600; text-align: left; transition: 0.2s;}
+        .theme-option:hover, .theme-option.active { background: var(--glass-hover); color: var(--text-primary); }
+
+        .top-left-header { position: fixed; top: 24px; left: 24px; z-index: 100; display: flex; align-items: center; height: 44px; }
+        .mini-profile { display: flex; align-items: center; gap: 10px; opacity: 0; max-width: 0; transform: translateX(-15px); overflow: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .mini-profile img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid var(--glass-border); }
+        .mini-profile .mini-name { font-weight: 700; font-size: 16px; color: var(--text-primary); white-space: nowrap; }
+
+        .top-left-header.scrolled-header .mini-profile { opacity: 1; max-width: 200px; transform: translateX(0); }
+        .avatar-wrap, .profile-name { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .scrolled-main-profile .avatar-wrap, .scrolled-main-profile .profile-name { opacity: 0; pointer-events: none; transform: translateY(-20px); }
+        @media (min-width: 860px) { .top-left-header.scrolled-header .mini-profile { opacity: 0 !important; max-width: 0 !important; } .scrolled-main-profile .avatar-wrap, .scrolled-main-profile .profile-name { opacity: 1 !important; pointer-events: auto !important; transform: none !important; } }
+
+        .mobile-top-bg { position: fixed; top: 0; left: 0; width: 100%; height: 80px; z-index: 95; pointer-events: none; background: transparent; transition: background 0.3s ease, backdrop-filter 0.3s ease, border-bottom 0.3s ease; }
+        .mobile-top-bg.scrolled { background: var(--glass-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-bottom: 1px solid var(--glass-border); }
+        @media (min-width: 860px) { .mobile-top-bg { display: none !important; } }
+
+        .avatar-inner { position: relative; display: inline-block; border-radius: var(--br); overflow: hidden; }
+        .avatar-hover-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; opacity: 0; transition: opacity 0.3s; z-index: 5; }
+        .avatar-wrap:hover .avatar-hover-overlay { opacity: 1; }
+
+        .floating-nav { position: fixed; z-index: 100; background: var(--glass-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); display: flex; gap: 16px; align-items: center; justify-content: center; padding: 12px; border-radius: var(--br); transition: all 0.3s ease;}
+        .nav-item { color: var(--text-secondary); font-size: 24px; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: calc(var(--br)/1.5); text-decoration: none; transition: 0.3s; }
+        .nav-item:hover, .nav-item.active { background: var(--glass-hover); color: var(--text-primary); transform: scale(1.1); }
+
+        .app-container { width: 100%; height: 100vh; position: relative; z-index: 10; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; }
+        .layout-wrapper { display: flex; flex-direction: column; width: 100%; max-width: 1200px; margin: 0 auto; padding: 40px 24px 120px 24px; gap: 40px; }
+        .profile-sidebar { display: flex; flex-direction: column; align-items: ${align}; text-align: ${align === 'flex-start' ? 'left' : 'center'}; }
+        .avatar-wrap { position: relative; margin-bottom: 24px; cursor: pointer; display: inline-block;}
+        .avatar-glow { position: absolute; inset: -10px; border-radius: 50%; filter: blur(20px); background: linear-gradient(135deg, var(--accent-color), transparent); opacity: 0.3; }
+        .avatar { width: 120px; height: 120px; border-radius: var(--br); object-fit: cover; position: relative; z-index: 2; border: 2px solid var(--glass-border); }
+        
+        .profile-name { font-size: 28px; font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; justify-content: ${align === 'flex-start' ? 'flex-start' : 'center'}; gap: 8px; word-wrap: break-word;}
+        .verified-badge { color: var(--accent-color); }
+        .profile-role { color: var(--text-secondary); font-size: 16px; margin-bottom: 16px; font-weight: 600; word-wrap: break-word;}
+        .stats-row { display: flex; align-items: center; justify-content: ${align === 'flex-start' ? 'flex-start' : 'center'}; gap: 24px; margin-bottom: 32px; flex-wrap: wrap;}
+        .stat-item { display: flex; flex-direction: column; align-items: ${align === 'flex-start' ? 'flex-start' : 'center'}; }
+        .stat-val { font-size: 18px; font-weight: 800; word-wrap: break-word;}
+        .stat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-top: 4px; word-wrap: break-word; letter-spacing:0.5px;}
+        .stat-divider { width: 1px; height: 30px; background: var(--glass-border); }
+
+        .btn { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-primary); padding: 16px 24px; border-radius: var(--br); cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 12px; font-size: 15px; width: 100%; transition: 0.3s; word-wrap: break-word;}
+        .btn:hover { background: var(--glass-hover); transform: translateY(-2px); }
+
+        .content-area { display: flex; flex-direction: column; gap: 16px; width: 100%; }
+        .tab-section { display: none; animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .tab-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        .info-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--br); padding: 24px; margin-bottom: 24px; line-height: 1.7;}
+        .info-card p, .link-title, .link-card span { white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; }
+
+        .services-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 24px; }
+        .links-grid { width: 100%; display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 24px; }
+        .link-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--br); padding: 20px; display: flex; align-items: center; text-decoration: none; color: var(--text-primary); transition: 0.3s; }
+        .link-card:hover { background: var(--glass-hover); transform: scale(1.02); border-color: var(--accent-color); }
+        .link-icon-wrap { width: 48px; height: 48px; border-radius: calc(var(--br) / 1.5); background: var(--icon-bg); display: flex; align-items: center; justify-content: center; margin-right: 16px; flex-shrink: 0;}
+
+        .project-filters { display: flex; gap: 8px; margin-bottom: 24px; overflow-x: auto; padding-bottom: 4px; }
+        .project-filters::-webkit-scrollbar { display: none; }
+        .filter-btn { padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 13px; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-secondary); cursor: pointer; transition: 0.3s; white-space: nowrap; }
+        .filter-btn.active { background: var(--text-primary); color: var(--bg-base); }
+
+        .qr-overlay, .preview-overlay, .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transition: 0.3s ease; z-index: 300; }
+        .qr-overlay.active, .preview-overlay.active, .sheet-overlay.active { opacity: 1; pointer-events: auto; }
+        
+        .qr-modal, .preview-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -40%); background: var(--sheet-bg); border-radius: var(--br); border: 1px solid var(--glass-border); opacity: 0; pointer-events: none; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 310; box-shadow: 0 25px 60px rgba(0,0,0,0.4); display: flex; flex-direction: column; overflow: hidden; }
+        .qr-modal.active, .preview-modal.active { transform: translate(-50%, -50%); opacity: 1; pointer-events: auto; }
+        
+        .qr-content { padding: 32px 24px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .qr-selector { display: flex; gap: 10px; margin-bottom: 24px; background: var(--icon-bg); padding: 10px; border-radius: calc(var(--br)/1.2); border: 1px solid var(--glass-border); flex-wrap: wrap; justify-content: center;}
+        .qr-tab { width: 44px; height: 44px; border-radius: calc(var(--br)/1.5); border: none; background: transparent; color: var(--text-secondary); font-size: 20px; cursor: pointer; transition: 0.2s;}
+        .qr-tab:hover, .qr-tab.active { background: var(--text-primary); color: var(--bg-base); }
+
+        .preview-image-container { width: 100%; height: 200px; background: #000; position: relative;}
+        .preview-image-container img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
+        .preview-content { padding: 24px; flex: 1; display: flex; flex-direction: column; }
+        .preview-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; color: var(--text-primary); word-wrap: break-word;}
+
+        /* BOTTOM SHEET */
+        .bottom-sheet { position: fixed; bottom: 0; left: 0; width: 100%; height: 100vh; background: var(--sheet-bg); border-radius: 40px 40px 0 0; border: 1px solid var(--glass-border); border-bottom: none; z-index: 310; display: flex; flex-direction: column; box-shadow: 0 -10px 40px rgba(0,0,0,0.2); transform: translateY(100%); transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1); will-change: transform; }
+        .drag-handle-area { width: 100%; padding: 16px 0 24px 0; display: flex; justify-content: center; cursor: grab; touch-action: none; }
+        .drag-handle { width: 64px; height: 5px; background: var(--glass-border); border-radius: 10px; }
+        .sheet-content { padding: 0 24px 40px 24px; overflow-y: auto; flex: 1; }
+        .sheet-title { font-size: 24px; font-weight: 800; margin-bottom: 24px; padding-right: 40px; word-wrap: break-word;}
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+        .grid-card { background: linear-gradient(135deg, var(--icon-bg), transparent); border: 1px solid var(--glass-border); border-radius: var(--br); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; height: 120px; }
+        .sheet-close-btn { position: absolute; top: 24px; right: 24px; width: 32px; height: 32px; border-radius: 50%; background: var(--icon-bg); border: none; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 60; transition: 0.2s; }
+        .sheet-close-btn:hover { background: var(--glass-hover); color: var(--text-primary); }
+
+        ${customCSS}
+
+        @media (min-width: 860px) {
+            .layout-wrapper { flex-direction: row; padding: 100px 24px 100px 100px; gap: 60px; }
+            .profile-sidebar { position: sticky; top: 100px; width: 300px; align-items: ${align}; text-align: ${align === 'flex-start' ? 'left' : 'center'}; }
+            .content-area { flex: 1; }
+            .floating-nav { top: 50%; left: 24px; transform: translateY(-50%); flex-direction: column; }
+            .services-grid { grid-template-columns: 1fr 1fr; }
+            .links-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+            .preview-modal { width: 700px; }
+            .preview-image-container { height: 350px; }
+            .qr-modal { width: 380px; }
+            .bottom-sheet { top: 50%; left: 50%; width: 500px; max-width: 90vw; bottom: auto; height: auto; max-height: 85vh; border-radius: var(--br); transform: translate(-50%, -50%) scale(0.9); opacity: 0; pointer-events: none; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+            .bottom-sheet.desktop-open { transform: translate(-50%, -50%) scale(1); opacity: 1; pointer-events: auto; }
+            .drag-handle-area { display: none; }
+            .sheet-content { padding-top: 32px; }
+        }
+        @media (max-width: 859px) {
+            .floating-nav { bottom: 24px; left: 50%; transform: translateX(-50%); flex-direction: row; }
+            .preview-modal { width: 100%; bottom: 0; left: 0; top: auto; transform: translateY(100%); border-radius: 32px 32px 0 0; }
+            .preview-modal.active { transform: translateY(0); }
+            .qr-modal { width: 90%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dynamic-bg"></div>
+    <div class="bg-overlay"></div>
+    <div id="mobile-top-bg" class="mobile-top-bg"></div>
+
+    <div class="top-left-header" id="top-left-header">
+        <div class="mini-profile">
+            <img src="${appState.images.avatar}" alt="Avatar">
+            <span class="mini-name">${name}</span>
+        </div>
+    </div>
+
+    ${themeHTML}
+
+    <nav class="floating-nav">
+        ${dockHTML}
+    </nav>
+
+    <div class="app-container" id="app-container">
+        <div class="layout-wrapper">
+            <div class="profile-sidebar">
+                <div class="avatar-wrap" onclick="openQRModal()" title="Share Profile">
+                    <div class="avatar-glow"></div>
+                    <div class="avatar-inner">
+                        <img src="${appState.images.avatar}" alt="Avatar" class="avatar">
+                        <div class="avatar-hover-overlay">
+                            <i class="ph-bold ph-qr-code" style="font-size: 32px;"></i>
+                            <span style="font-weight: 700; font-size: 13px; margin-top: 8px;">Share Profile</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <h1 class="profile-name">${name} ${isVerified ? '<i class="ri-verified-badge-fill verified-badge" style="font-size: 22px;"></i>' : ''}</h1>
+                <p class="profile-role">${role}</p>
+                <p style="font-size: 13px; font-weight: 600; font-style: italic; color: var(--text-secondary); margin-bottom: 24px; background: var(--glass-bg); padding: 8px 16px; border-radius: var(--br); border: 1px solid var(--glass-border); word-wrap: break-word;">"${quote}"</p>
+
+                <div class="stats-row">
+                    <div class="stat-item"><span class="stat-val">${s1v}</span><span class="stat-label">${s1l}</span></div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item"><span class="stat-val">${s2v}</span><span class="stat-label">${s2l}</span></div>
+                </div>
+
+                <button class="btn" onclick="openSheet('full')"><i class="${aboutBtnIco}" style="font-size: 20px;"></i> ${aboutBtnTxt}</button>
+            </div>
+
+            <div class="content-area">
+                <div id="home-section" class="tab-section active">
+                    <h2 style="font-size: 22px; font-weight: 800; margin: 24px 0 16px 0; padding-left: 8px;">About Me</h2>
+                    <div class="info-card"><p style="color: var(--text-primary); font-size: 15px;">${bio}</p></div>
+
+                    <h2 style="font-size: 22px; font-weight: 800; margin: 32px 0 16px 0; padding-left: 8px;">What I'm Doing</h2>
+                    <div class="services-grid">${servicesHTML}</div>
+                </div>
+
+                <div id="projects-section" class="tab-section">
+                    <h2 style="font-size: 22px; font-weight: 800; margin: 24px 0 16px 0; padding-left: 8px;">My Projects</h2>
+                    <div class="project-filters">
+                        <button class="filter-btn active" onclick="filterProjects('all', this)">All</button>
+                        <button class="filter-btn" onclick="filterProjects('apps', this)">Apps</button>
+                        <button class="filter-btn" onclick="filterProjects('web-dev', this)">Web Dev</button>
+                        <button class="filter-btn" onclick="filterProjects('games', this)">Games</button>
+                    </div>
+                    <div class="links-grid" id="projects-grid">${projectsHTML}</div>
+                </div>
+                
+                ${customPagesHTML}
+            </div>
+        </div>
+    </div>
+
+    <!-- ABOUT BOTTOM SHEET -->
+    <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
+    <div class="bottom-sheet" id="bottom-sheet">
+        <button class="sheet-close-btn" onclick="closeSheet()" aria-label="Close menu"><i class="ri-close-line" style="font-size: 24px;"></i></button>
+        <div class="drag-handle-area" id="drag-handle"><div class="drag-handle"></div></div>
+        <div class="sheet-content">
+            <h2 class="sheet-title">${aboutTitle}</h2>
+            <div class="grid-2">${aboutCardsHTML}</div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 28px; padding: 24px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--br);">
+                ${aboutLinksHTML}
+            </div>
+        </div>
+    </div>
+
+    <!-- QR CODE PROFILE MODAL -->
+    <div class="qr-overlay" id="qr-overlay" onclick="closeQRModal()"></div>
+    <div class="qr-modal" id="qr-modal">
+        <button onclick="closeQRModal()" style="position: absolute; top: 16px; right: 16px; background:var(--icon-bg); border:none; color:var(--text-secondary); width: 36px; height: 36px; border-radius: 50%; font-size:20px; cursor:pointer; z-index:10; transition: 0.2s;"><i class="ri-close-line"></i></button>
+        <div class="qr-content">
+            <h3 style="font-size: 22px; margin-bottom: 24px; font-weight: 800;">Share Profile</h3>
+            <div class="qr-selector">${qrTabsHTML}</div>
+            <div style="position: relative; display: flex; justify-content: center; align-items: center; width: 240px; height: 240px; background: white; padding: 12px; border-radius: 20px; margin-bottom: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                <a href="${firstSocialUrl}" id="qr-link" target="_blank">
+                    <div id="qr-canvas"></div>
+                    <div id="qr-logo-overlay" style="position: absolute; width: 54px; height: 54px; background: white; border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.15); top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                        <i id="qr-center-icon" class="${firstSocialIcon}" style="font-size: 36px; color: ${firstSocialColor};"></i>
+                    </div>
+                </a>
+            </div>
+            <p style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Scan or tap the code to visit</p>
+        </div>
+    </div>
+
+    <!-- PROJECT PREVIEW MODAL -->
+    <div class="preview-overlay" id="preview-overlay" onclick="closePreview()"></div>
+    <div class="preview-modal" id="preview-modal">
+        <button onclick="closePreview()" style="position: absolute; z-index: 10; top: 16px; right: 16px; background: rgba(0,0,0,0.6); border: none; color: white; width: 36px; height:36px; border-radius:50%; cursor:pointer; backdrop-filter: blur(4px); transition: 0.2s;"><i class="ri-close-line" style="font-size: 20px;"></i></button>
+        <div class="preview-image-container"><img id="preview-img" src=""></div>
+        <div class="preview-content">
+            <h3 class="preview-title" id="preview-title">Title</h3>
+            <span id="preview-category" style="font-size: 12px; color: var(--accent-color); font-weight:800; margin-bottom:24px; display:inline-block; padding: 6px 14px; background: var(--icon-bg); border-radius: 12px; text-transform: uppercase; letter-spacing: 1px;">Cat</span>
+            <a href="#" id="preview-link" target="_blank" style="margin-top: auto; padding: 16px; background: var(--text-primary); color: var(--bg-base); border-radius: calc(var(--br)/1.2); text-align: center; text-decoration: none; font-weight: 800; display: flex; justify-content: center; gap: 8px; align-items: center; font-size: 15px;"><i class="ph-bold ph-arrow-square-out" style="font-size: 20px;"></i> Open Project Live</a>
+        </div>
+    </div>
+
+    <script>
+        ${themeJS}
+
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.tab-section').forEach(t => t.classList.remove('active'));
+            const target = document.getElementById(tabId + '-section');
+            if(target) target.classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            if(el) el.classList.add('active');
+        }
+
+        function filterProjects(category, clickedElement) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            clickedElement.classList.add('active');
+            document.querySelectorAll('.project-card').forEach(card => {
+                if (category === 'all' || card.getAttribute('data-category') === category) {
+                    card.style.display = 'flex'; 
+                } else {
+                    card.style.display = 'none'; 
+                }
+            });
+        }
+
+        // PERFECT BLURRED NAVBAR SCROLL LOGIC
+        const appScrollNode = document.getElementById('app-container');
+        const headerLogo = document.getElementById('top-left-header');
+        const profileBox = document.querySelector('.profile-sidebar');
+        const mobileBg = document.getElementById('mobile-top-bg');
+
+        appScrollNode.addEventListener('scroll', () => {
+            if (window.innerWidth < 860) {
+                if (appScrollNode.scrollTop > 45) {
+                    headerLogo.classList.add('scrolled-header');
+                    profileBox.classList.add('scrolled-main-profile');
+                    mobileBg.classList.add('scrolled');
+                } else {
+                    headerLogo.classList.remove('scrolled-header');
+                    profileBox.classList.remove('scrolled-main-profile');
+                    mobileBg.classList.remove('scrolled');
+                }
+            }
+        });
+
+        // Bottom Sheet Logic
+        const sheet = document.getElementById('bottom-sheet');
+        const overlay = document.getElementById('sheet-overlay');
+        const isDesktop = () => window.innerWidth > 860;
+
+        window.openSheet = (targetState = 'half') => {
+            overlay.classList.add('active');
+            if (isDesktop()) { sheet.classList.add('desktop-open'); } 
+            else { sheet.style.transform = 'translateY(' + (targetState === 'half' ? 50 : 10) + '%)'; }
+        };
+        window.closeSheet = () => {
+            overlay.classList.remove('active');
+            if (isDesktop()) { sheet.classList.remove('desktop-open'); } 
+            else { sheet.style.transform = 'translateY(100%)'; }
+        };
+
+        const styledQrCode = new QRCodeStyling({
+            width: 220, height: 220, type: "svg", data: "${firstSocialUrl}",
+            dotsOptions: { color: "${firstSocialColor}", type: "rounded" },
+            cornersSquareOptions: { type: "extra-rounded", color: "${firstSocialColor}" }
+        });
+        styledQrCode.append(document.getElementById("qr-canvas"));
+
+        function openQRModal() { document.getElementById('qr-overlay').classList.add('active'); document.getElementById('qr-modal').classList.add('active'); }
+        function closeQRModal() { document.getElementById('qr-overlay').classList.remove('active'); document.getElementById('qr-modal').classList.remove('active'); }
+        function switchQR(url, el, color, iconClass) {
+            document.querySelectorAll('.qr-tab').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('qr-link').href = url;
+            document.getElementById('qr-center-icon').className = iconClass;
+            document.getElementById('qr-center-icon').style.color = color;
+            styledQrCode.update({ data: url, dotsOptions: { color: color }, cornersSquareOptions: { color: color } });
+        }
+
+        function openPreview(title, cat, url, img) {
+            document.getElementById('preview-title').innerText = title;
+            document.getElementById('preview-category').innerText = cat;
+            document.getElementById('preview-link').href = url;
+            document.getElementById('preview-img').src = img;
+            document.getElementById('preview-overlay').classList.add('active');
+            document.getElementById('preview-modal').classList.add('active');
+        }
+        function closePreview() {
+            document.getElementById('preview-overlay').classList.remove('active');
+            document.getElementById('preview-modal').classList.remove('active');
+        }
+        
+        ${customJS}
+    <\/script>
+</body>
+</html>`;
+        }
+
+        // --- JSON SAVE & LOAD & INIT ---
+        function saveProjectConfig() {
+            const config = {
+                version: "5.0",
+                fields: {
+                    seoTitle: document.getElementById('cfg-seo-title').value,
+                    seoDesc: document.getElementById('cfg-seo-desc').value,
+                    accent: document.getElementById('cfg-accent').value,
+                    radius: document.getElementById('cfg-radius').value, blur: document.getElementById('cfg-blur').value,
+                    font: document.getElementById('cfg-font').value, align: document.getElementById('cfg-align').value,
+                    themeDef: document.getElementById('cfg-theme-def').value, themeShow: document.getElementById('cfg-theme-show').checked,
+                    isVerified: document.getElementById('cfg-verified').checked,
+                    cBg: document.getElementById('cfg-card-bg').value, cOp: document.getElementById('cfg-card-op').value,
+                    ovTop: document.getElementById('cfg-ov-top').value, ovBot: document.getElementById('cfg-ov-bot').value,
+                    borderOp: document.getElementById('cfg-border-op').value,
+                    name: document.getElementById('cfg-name').value, role: document.getElementById('cfg-role').value,
+                    quote: document.getElementById('cfg-quote').value, bio: document.getElementById('cfg-bio').value,
+                    s1v: document.getElementById('cfg-s1-v').value, s1l: document.getElementById('cfg-s1-l').value,
+                    s2v: document.getElementById('cfg-s2-v').value, s2l: document.getElementById('cfg-s2-l').value,
+                    aboutBtnTxt: document.getElementById('cfg-about-btn').value, aboutTitle: document.getElementById('cfg-about-title').value,
+                    customCSS: document.getElementById('cfg-custom-css').value, customJS: document.getElementById('cfg-custom-js').value
+                },
+                appState: appState
+            };
+            const blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
+            saveAs(blob, "mms_ultimate_builder_config.json");
+        }
+
+        function loadProjectConfig(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const parsed = JSON.parse(e.target.result);
+                        if (parsed.fields) {
+                            if(parsed.fields.seoTitle) document.getElementById('cfg-seo-title').value = parsed.fields.seoTitle;
+                            if(parsed.fields.seoDesc) document.getElementById('cfg-seo-desc').value = parsed.fields.seoDesc;
+                            document.getElementById('cfg-accent').value = parsed.fields.accent;
+                            document.getElementById('cfg-radius').value = parsed.fields.radius;
+                            document.getElementById('cfg-blur').value = parsed.fields.blur;
+                            if(parsed.fields.font) document.getElementById('cfg-font').value = parsed.fields.font;
+                            if(parsed.fields.align) document.getElementById('cfg-align').value = parsed.fields.align;
+                            if(parsed.fields.cBg) document.getElementById('cfg-card-bg').value = parsed.fields.cBg;
+                            if(parsed.fields.cOp) document.getElementById('cfg-card-op').value = parsed.fields.cOp;
+                            if(parsed.fields.ovTop) document.getElementById('cfg-ov-top').value = parsed.fields.ovTop;
+                            if(parsed.fields.ovBot) document.getElementById('cfg-ov-bot').value = parsed.fields.ovBot;
+                            if(parsed.fields.borderOp) document.getElementById('cfg-border-op').value = parsed.fields.borderOp;
+                            document.getElementById('cfg-theme-def').value = parsed.fields.themeDef;
+                            document.getElementById('cfg-theme-show').checked = parsed.fields.themeShow;
+                            document.getElementById('cfg-verified').checked = parsed.fields.isVerified;
+                            document.getElementById('cfg-name').value = parsed.fields.name;
+                            document.getElementById('cfg-role').value = parsed.fields.role;
+                            document.getElementById('cfg-quote').value = parsed.fields.quote;
+                            document.getElementById('cfg-bio').value = parsed.fields.bio;
+                            document.getElementById('cfg-s1-v').value = parsed.fields.s1v;
+                            document.getElementById('cfg-s1-l').value = parsed.fields.s1l;
+                            document.getElementById('cfg-s2-v').value = parsed.fields.s2v;
+                            document.getElementById('cfg-s2-l').value = parsed.fields.s2l;
+                            document.getElementById('cfg-about-btn').value = parsed.fields.aboutBtnTxt;
+                            document.getElementById('cfg-about-title').value = parsed.fields.aboutTitle;
+                            if(parsed.fields.customCSS) document.getElementById('cfg-custom-css').value = parsed.fields.customCSS;
+                            if(parsed.fields.customJS) document.getElementById('cfg-custom-js').value = parsed.fields.customJS;
+                        }
+                        if (parsed.appState) { Object.assign(appState, parsed.appState); }
+                        renderLists(); triggerCompile();
+                        document.getElementById('preview-ico-aboutBtnIcon').className = appState.customIconTargets.aboutBtnIcon;
+                    } catch (err) { alert("Invalid JSON configuration file."); }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        function exportFullCodePackage() {
+            const btn = document.querySelector('.export-btn');
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Bundling Standalone Package...';
+
+            const fullHTML = generateOutputHTML();
+            const zip = new JSZip();
+
+            zip.file("index.html", fullHTML);
+            zip.file("README.md", `# Your Dynamic Portfolio\n\nGenerated via MMS Builder Pro. All your uploaded images have been compressed and encoded directly into the index.html file so it can be hosted anywhere instantly without needing an external assets folder.`);
+
+            zip.generateAsync({ type: "blob" }).then(function(content) {
+                saveAs(content, "mms_portfolio_pro_build.zip");
+                btn.innerHTML = '<i class="ph-bold ph-check"></i> Package Downloaded!';
+                setTimeout(() => { btn.innerHTML = orig; }, 2500);
+            });
+        }
+
+        // INIT
+        window.onload = () => {
+            const savedBTheme = localStorage.getItem('mms_builder_theme');
+            if(savedBTheme) {
+                document.getElementById('builder-theme-sel').value = savedBTheme;
+                setBuilderTheme(savedBTheme);
+            }
+            const savedCache = localStorage.getItem('mms_builder_autosave_v5');
+            if(savedCache && document.getElementById('cfg-autosave').checked) {
+                try {
+                    const parsed = JSON.parse(savedCache);
+                    if (parsed.fields) {
+                        if(parsed.fields.seoTitle) document.getElementById('cfg-seo-title').value = parsed.fields.seoTitle;
+                        if(parsed.fields.seoDesc) document.getElementById('cfg-seo-desc').value = parsed.fields.seoDesc;
+                        if(parsed.fields.cBg) document.getElementById('cfg-card-bg').value = parsed.fields.cBg;
+                        if(parsed.fields.cOp) document.getElementById('cfg-card-op').value = parsed.fields.cOp;
+                        if(parsed.fields.ovTop) document.getElementById('cfg-ov-top').value = parsed.fields.ovTop;
+                        if(parsed.fields.ovBot) document.getElementById('cfg-ov-bot').value = parsed.fields.ovBot;
+                        if(parsed.fields.borderOp) document.getElementById('cfg-border-op').value = parsed.fields.borderOp;
+                        document.getElementById('cfg-accent').value = parsed.fields.accent;
+                        document.getElementById('cfg-radius').value = parsed.fields.radius;
+                        document.getElementById('cfg-blur').value = parsed.fields.blur;
+                        document.getElementById('cfg-font').value = parsed.fields.font;
+                        document.getElementById('cfg-align').value = parsed.fields.align;
+                        document.getElementById('cfg-theme-def').value = parsed.fields.themeDef;
+                        document.getElementById('cfg-theme-show').checked = parsed.fields.themeShow;
+                        document.getElementById('cfg-name').value = parsed.fields.name;
+                        document.getElementById('cfg-role').value = parsed.fields.role;
+                        document.getElementById('cfg-quote').value = parsed.fields.quote;
+                        document.getElementById('cfg-bio').value = parsed.fields.bio;
+                        document.getElementById('cfg-s1-v').value = parsed.fields.s1v;
+                        document.getElementById('cfg-s1-l').value = parsed.fields.s1l;
+                        document.getElementById('cfg-s2-v').value = parsed.fields.s2v;
+                        document.getElementById('cfg-s2-l').value = parsed.fields.s2l;
+                        document.getElementById('cfg-about-btn').value = parsed.fields.aboutBtnTxt;
+                        if(parsed.fields.customCSS) document.getElementById('cfg-custom-css').value = parsed.fields.customCSS;
+                        if(parsed.fields.customJS) document.getElementById('cfg-custom-js').value = parsed.fields.customJS;
+                    }
+                    if (parsed.appState) { Object.assign(appState, parsed.appState); }
+                } catch(e) {}
+            }
+            renderLists(); triggerCompile();
+        };
+    </script>
+</body>
+</html>
