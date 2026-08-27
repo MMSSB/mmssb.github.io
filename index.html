@@ -13,6 +13,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- QR Code Styling Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.5.0/lib/qr-code-styling.min.js"></script>
     
     <script>
         const savedTheme = localStorage.getItem('theme') || 'system';
@@ -153,11 +156,11 @@
         .qr-tab.active { background: var(--text-primary); color: var(--bg-base); }
         
         .qr-image-container {
-            background: white; padding: 16px; border-radius: 16px; transition: transform 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 16px;
+            background: white; padding: 16px; border-radius: 16px; transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 16px; display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
         }
         .qr-image-container:hover { transform: scale(1.05); }
-        .qr-image-container img { width: 180px; height: 180px; display: block; transition: opacity 0.3s ease; }
 
         /* --- PROJECT FILTER TABS --- */
         .project-filters {
@@ -542,7 +545,7 @@
     <!-- OVERLAYS AND MODALS -->
     <!-- ============================================== -->
 
-    <!-- NEW: QR SHARE MODAL -->
+    <!-- QR SHARE MODAL (FAIL-PROOF HTML OVERLAY IMPLEMENTATION) -->
     <div class="qr-overlay" id="qr-overlay" onclick="closeQRModal()"></div>
     <div class="qr-modal" id="qr-modal">
         <button class="close-btn" style="position: absolute; z-index: 10; top: 16px; right: 16px;" onclick="closeQRModal()" aria-label="Close QR">
@@ -551,27 +554,32 @@
         <div class="qr-content">
             <h3 class="qr-title">Share Profile</h3>
             
-            <!-- Link Switcher Buttons (Put your actual links in the single quotes!) -->
+            <!-- Link Switcher Buttons -->
             <div class="qr-selector">
-                <button class="qr-tab active" onclick="switchQR('https://mmssb.github.io/', this)" title="My Website">
+                <button class="qr-tab active" onclick="switchQR('https://mmssb.github.io/', this, 'website')" title="My Website">
                     <i class="ph-bold ph-globe"></i>
                 </button>
-                <button class="qr-tab" onclick="switchQR('https://github.com/MMSSB', this)" title="GitHub">
+                <button class="qr-tab" onclick="switchQR('https://github.com/MMSSB', this, 'github')" title="GitHub">
                     <i class="fa-brands fa-github"></i>
                 </button>
-                <button class="qr-tab" onclick="switchQR('https://www.facebook.com/', this)" title="Facebook">
+                <button class="qr-tab" onclick="switchQR('https://www.facebook.com/', this, 'facebook')" title="Facebook">
                     <i class="fa-brands fa-facebook"></i>
                 </button>
-                <button class="qr-tab" onclick="switchQR('https://www.instagram.com/', this)" title="Instagram">
+                <button class="qr-tab" onclick="switchQR('https://www.instagram.com/', this, 'instagram')" title="Instagram">
                     <i class="fa-brands fa-instagram"></i>
                 </button>
             </div>
 
             <!-- Clickable QR Image Container -->
-            <div class="qr-image-container">
-                <a href="https://mmssb.github.io/" id="qr-link" target="_blank" title="Click to visit link">
-                    <!-- Automatically generates a QR code based on the URL -->
-                    <img id="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://mmssb.github.io/" alt="QR Code">
+            <div class="qr-image-container" id="qr-image-container">
+                <a href="https://mmssb.github.io/" id="qr-link" target="_blank" title="Click to visit link" style="position: relative; display: flex; justify-content: center; align-items: center; width: 220px; height: 220px;">
+                    <!-- The QR styling library will inject the code here -->
+                    <div id="qr-canvas"></div>
+                    
+                    <!-- HTML Overlay for the center icon (Bypasses security blocks!) -->
+                    <div id="qr-logo-overlay" style="position: absolute; width: 48px; height: 48px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                        <img src="./assets/images/mmslogo.PNG" alt="Logo" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover;">
+                    </div>
                 </a>
             </div>
             
@@ -710,7 +718,30 @@
             }
         });
 
-        // --- 5. NEW: QR MODAL LOGIC ---
+        // --- 5. STYLISH QR MODAL LOGIC (UPDATED WITH HTML OVERLAY) ---
+        
+        // Initialize the base stylized QR Code setup (without the problematic canvas images)
+        const styledQrCode = new QRCodeStyling({
+            width: 220,
+            height: 220,
+            type: "svg", // SVG renders cleanly and fast
+            data: "https://mmssb.github.io/",
+            dotsOptions: {
+                color: "#1896e5", 
+                type: "rounded"   
+            },
+            backgroundOptions: {
+                color: "#ffffff",
+            },
+            cornersSquareOptions: {
+                type: "extra-rounded",
+                color: "#000"
+            }
+        });
+
+        // Append to our HTML canvas div when ready
+        styledQrCode.append(document.getElementById("qr-canvas"));
+
         function openQRModal() {
             document.getElementById('qr-overlay').classList.add('active');
             document.getElementById('qr-modal').classList.add('active');
@@ -721,24 +752,53 @@
             document.getElementById('qr-modal').classList.remove('active');
         }
 
-        function switchQR(url, btnElement) {
+        function switchQR(url, btnElement, platform) {
             // Update active state of buttons
             document.querySelectorAll('.qr-tab').forEach(btn => btn.classList.remove('active'));
             btnElement.classList.add('active');
             
-            const qrImg = document.getElementById('qr-img');
-            const qrLink = document.getElementById('qr-link');
+            const qrContainer = document.getElementById('qr-image-container');
+            const overlay = document.getElementById('qr-logo-overlay');
             
-            // Fade out the old QR code
-            qrImg.style.opacity = '0';
+            // Fade out animation
+            qrContainer.style.opacity = '0';
             
-            // Wait for fade out, then swap source and fade back in
+            // Wait for fade out, then apply changes and fade in
             setTimeout(() => {
-                qrLink.href = url;
-                // Generate a new QR code using a free API based on the selected URL
-                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
-                qrImg.style.opacity = '1';
-            }, 250);
+                let activeColor = "#1896e5"; // Default green
+                // let activeColor = "#10b981"; // Default green
+                
+                // Set the default inner HTML for the center overlay to your logo
+                let overlayHTML = `<img src="./assets/images/mmslogo.PNG" alt="Logo" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover;">`;
+                
+                // Configure specific colors and FontAwesome icons for each platform
+                if (platform === 'github') { 
+                    activeColor = "#24292e"; 
+                    overlayHTML = `<i class="fa-brands fa-github" style="font-size: 36px; color: ${activeColor};"></i>`;
+                } else if (platform === 'facebook') { 
+                    activeColor = "#1877F2"; 
+                    overlayHTML = `<i class="fa-brands fa-facebook" style="font-size: 36px; color: ${activeColor};"></i>`;
+                } else if (platform === 'instagram') { 
+                    activeColor = "#E1306C"; 
+                    overlayHTML = `<i class="fa-brands fa-instagram" style="font-size: 36px; color: ${activeColor};"></i>`;
+                }
+                
+                // Update the stylized code dynamically (just color and dots)
+                styledQrCode.update({
+                    data: url,
+                    dotsOptions: { color: activeColor },
+                    cornersSquareOptions: { color: activeColor }
+                });
+                
+                // Update the clickable wrapper link
+                document.getElementById('qr-link').href = url;
+                
+                // Update the HTML overlay in the center of the QR code
+                overlay.innerHTML = overlayHTML;
+                
+                // Fade back in
+                qrContainer.style.opacity = '1';
+            }, 300);
         }
     </script>
     
