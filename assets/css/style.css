@@ -1,6 +1,7 @@
 :root {
     /* Base Variables (Theme Agnostic) */
-    --accent-color: #10b981;
+        --accent-color: #3b7dee;
+    /* --accent-color: #10b981; */
     --sheet-hidden: 100%;
     --sheet-half: 50%;
     --sheet-full: 10%;
