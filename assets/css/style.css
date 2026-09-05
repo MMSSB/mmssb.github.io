@@ -53,6 +53,17 @@
     font-family: 'Plus Jakarta Sans', sans-serif;
     -webkit-tap-highlight-color: transparent;
     outline: none;
+
+
+
+      /* Prevents the default iOS Safari callout/popup menu (Copy, Look Up, etc.) */
+  -webkit-touch-callout: none; 
+  
+  /* Prevents text selection across all major modern mobile and desktop browsers */
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none;    /* Firefox */
+  -ms-user-select: none;     /* Legacy Edge / IE */
+  user-select: none;         /* Standard syntax (Chrome, Opera, Edge) */
 }
 
 body {
