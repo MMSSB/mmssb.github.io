@@ -281,8 +281,8 @@ body {
     object-fit: cover;
     position: relative;
     z-index: 2;
-    border: 2px solid var(--avatar-border);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    /* border: 2px solid var(--avatar-border);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2); */
     pointer-events: none;
     user-select: none;
     -webkit-user-select: none;
