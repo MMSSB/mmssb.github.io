@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MMS - Tools & Downloads</title>
+    <link rel="shortcut icon" href="./assets/images/mmslogo.PNG" type="image/x-icon">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icon Libraries -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Theme Script -->
+    <script>
+        const savedTheme = localStorage.getItem('theme') || 'system';
+        if (savedTheme === 'system') {
+            const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        } else {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+    </script>
+    
+    <!-- Main Style Sheet -->
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <style>
+        /* --- REDESIGNED HERO HEADER UI --- */
+        .hero-section {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 60px 20px 40px;
+            margin-bottom: 24px;
+        }
+
+        .hero-logo-bg {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 300px;
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 0;
+            border-radius: 60px;
+            overflow: hidden;
+        }
+        [data-theme="light"] .hero-logo-bg { opacity: 0.08; }
+        .hero-logo-bg img { width: 100%; height: 100%; object-fit: contain; }
+
+        /* MMS Main Logo inside Hero */
+        .hero-main-logo {
+            width: 84px;
+            height: 84px;
+            border-radius: 24px;
+            margin: 0 auto 20px auto;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            padding: 12px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .hero-main-logo::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 25px;
+            background: linear-gradient(135deg, var(--accent-color), transparent);
+            z-index: -1;
+            opacity: 0.4;
+        }
+        .hero-main-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        .hero-title {
+            font-size: 42px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+        .hero-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* --- STORE GRID STYLES --- */
+        .store-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            position: relative;
+            z-index: 2;
+        }
+        @media (min-width: 860px) {
+            .store-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+            .hero-section { align-items: flex-start; text-align: left; padding: 40px 0 60px; }
+            .hero-logo-bg { left: -50px; top: -50px; transform: none; width: 400px; height: 400px; opacity: 0.02; }
+            .hero-main-logo { margin: 0 0 24px 0; width: 100px; height: 100px; padding: 16px; }
+        }
+
+        .app-card {
+            cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 20px;
+            background: var(--glass-bg); backdrop-filter: blur(10px);
+        }
+
+        .app-card-left { display: flex; align-items: center; gap: 16px; }
+
+        .app-icon-box {
+            width: 64px; height: 64px; border-radius: 16px;
+            background: var(--icon-bg); display: flex; align-items: center;
+            justify-content: center; overflow: hidden; flex-shrink: 0;
+            border: 1px solid var(--glass-border);
+        }
+        .app-icon-box img { width: 100%; height: 100%; object-fit: cover; }
+        .app-icon-box.pad-img img { width: 70%; height: 70%; object-fit: contain; }
+
+        .app-info { display: flex; flex-direction: column; gap: 4px; }
+        .app-title { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+        .app-meta { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+
+        .app-card-right i { font-size: 20px; color: var(--text-secondary); transition: all 0.3s; }
+        .app-card:hover .app-card-right i { color: var(--text-primary); transform: translateX(4px); }
+
+        /* --- ENHANCED APP MODAL --- */
+        @media (min-width: 860px) {
+            .bottom-sheet.app-modal {
+                width: 900px !important; 
+                max-width: 95vw !important;
+                max-height: 85vh !important;
+            }
+        }
+
+        .sheet-overlay { z-index: 9000 !important; }
+        .bottom-sheet.app-modal { z-index: 9001 !important; }
+
+        /* TRUE FULL SCREEN ON MOBILE */
+        @media (max-width: 859px) {
+            .bottom-sheet.app-modal.mobile-fullscreen-active {
+                transform: translateY(0%) !important;
+                height: 100vh !important;
+                max-height: 100vh !important;
+                border-radius: 0 !important;
+            }
+            .bottom-sheet.app-modal.mobile-fullscreen-active .drag-handle-area {
+                display: none !important;
+            }
+            .bottom-sheet.app-modal.mobile-fullscreen-active .sheet-content {
+                padding-top: 60px;
+            }
+            .close-btn {
+                top: 16px; right: 16px; z-index: 100;
+                background: var(--glass-bg); backdrop-filter: blur(10px);
+            }
+            .floating-nav { bottom: 16px !important; }
+        }
+
+        .sheet-content {
+            -ms-overflow-style: none; scrollbar-width: none;  
+            padding-bottom: 140px !important; 
+        }
+        .sheet-content::-webkit-scrollbar { display: none; }
+
+        /* HEADER UI */
+        .app-modal-header {
+            display: flex; flex-direction: column; gap: 20px; margin-bottom: 32px;
+            padding-bottom: 24px; border-bottom: 1px solid var(--glass-border);
+        }
+        .app-modal-hero-top { display: flex; align-items: center; gap: 20px; }
+        .app-modal-icon {
+            width: 90px; height: 90px; border-radius: 22px;
+            background: var(--icon-bg); border: 1px solid var(--glass-border);
+            display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        }
+        .app-modal-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .app-modal-icon.pad-img img { width: 60%; height: 60%; object-fit: contain; }
+
+        .app-modal-title-wrapper { flex: 1; }
+        .app-modal-title { font-size: 26px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; letter-spacing: -0.5px; }
+        
+        .app-modal-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+        .app-badge {
+            background: var(--icon-bg); color: var(--text-secondary);
+            padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 600;
+            border: 1px solid var(--glass-border);
+        }
+
+        /* Dual Button Container Styles */
+        .app-header-actions {
+            display: flex; gap: 12px; width: 100%; flex-wrap: wrap;
+        }
+        .app-header-actions .btn { flex: 1; min-width: 140px; }
+        
+        @media (min-width: 650px) {
+            .app-modal-header { flex-direction: row; align-items: center; justify-content: space-between; }
+            .app-modal-hero-top { flex: 1; }
+            .app-header-actions { width: auto; min-width: 300px; flex-wrap: nowrap; }
+        }
+
+        /* Screenshots Gallery & Navigation */
+        .section-heading { font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px; }
+        
+        .gallery-container-wrapper {
+            position: relative;
+            margin-bottom: 32px;
+        }
+
+        .screenshots-gallery {
+            display: flex; gap: 16px; overflow-x: auto; padding-bottom: 16px;
+            scroll-snap-type: x mandatory; -ms-overflow-style: none; scrollbar-width: none;
+            scroll-behavior: smooth;
+        }
+        .screenshots-gallery::-webkit-scrollbar { display: none; }
+        
+        .screenshot-item {
+            flex-shrink: 0; width: 320px; height: 180px; border-radius: 16px;
+            background: var(--icon-bg); scroll-snap-align: start; overflow: hidden;
+            border: 1px solid var(--glass-border); cursor: zoom-in; transition: transform 0.2s;
+        }
+        .screenshot-item:hover { transform: scale(1.02); border-color: var(--text-secondary); }
+        @media (max-width: 600px) { .screenshot-item { width: 260px; height: 150px; } }
+        .screenshot-item img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+
+        /* Gallery Desktop Scroll Buttons */
+        .gallery-nav-btn {
+            position: absolute;
+            top: calc(50% - 8px); 
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.2s;
+            opacity: 0; 
+            pointer-events: none;
+        }
+        .gallery-container-wrapper:hover .gallery-nav-btn {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .gallery-nav-btn:hover {
+            background: var(--text-primary);
+            color: var(--bg-base);
+            transform: translateY(-50%) scale(1.1);
+        }
+        .gallery-nav-btn.prev-btn { left: 8px; }
+        .gallery-nav-btn.next-btn { right: 8px; }
+
+        @media (max-width: 859px) {
+            .gallery-nav-btn { display: none !important; }
+        }
+
+        /* Description Area */
+        .app-modal-desc {
+            font-size: 16px; line-height: 1.7; color: var(--text-secondary); margin-bottom: 40px; white-space: pre-line;
+        }
+
+        /* About Section */
+        .about-section {
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            border-radius: 16px; padding: 16px 20px; margin-bottom: 24px;
+        }
+        .about-row {
+            display: flex; justify-content: space-between; padding: 14px 0;
+            border-bottom: 1px solid var(--glass-border); font-size: 15px;
+        }
+        .about-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .about-label { color: var(--text-secondary); font-weight: 500; }
+        .about-value { color: var(--text-primary); font-weight: 600; text-align: right; }
+        .about-value a { color: var(--accent-color); text-decoration: none; }
+        .about-value a:hover { text-decoration: underline; }
+
+        /* CLI Block */
+        .cli-block {
+            background: #0a0a0c; border: 1px solid var(--glass-border);
+            border-radius: 16px; padding: 20px; margin-bottom: 32px; display: none; position: relative;
+        }
+        .cli-header { 
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 12px; text-transform: uppercase; color: var(--text-secondary); 
+            margin-bottom: 16px; font-weight: 700; letter-spacing: 1px; 
+        }
+        .cli-copy-btn {
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+            color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 12px;
+            font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;
+        }
+        .cli-copy-btn:hover { background: var(--accent-color); border-color: var(--accent-color); }
+        /* .cli-copy-btn:hover { background: #10b981; border-color: #10b981; } */
+        .cli-code { font-family: 'Courier New', Courier, monospace; color: var(--accent-color); font-size: 15px; word-break: break-all; line-height: 1.5; }
+
+        /* Full Screen Image Preview Overlay */
+        .img-preview-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+        }
+        .img-preview-overlay.active { opacity: 1; pointer-events: auto; }
+        .img-preview-img {
+            max-width: 90vw; max-height: 90vh; border-radius: 12px; object-fit: contain;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .img-preview-overlay.active .img-preview-img { transform: scale(1); }
+        .img-preview-close {
+            position: absolute; top: 24px; right: 24px; background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 50%;
+            width: 44px; height: 44px; font-size: 24px; cursor: pointer;
+            display: flex; justify-content: center; align-items: center; transition: 0.2s;
+        }
+        .img-preview-close:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
+    </style>
+</head>
+<body>
+
+    <!-- Dynamic Backgrounds -->
+    <div class="dynamic-bg"></div>
+    <div class="bg-overlay"></div>
+    
+    <!-- Top Left Logo Image -->
+    <!-- <div class="top-left-header" id="top-left-header">
+        <div class="top-left-logo">
+            <img src="assets/images/mmslogo.PNG" alt="MMS Logo">
+        </div>
+    </div> -->
+
+    <!-- Theme Switcher -->
+    <div class="theme-switcher">
+        <button class="theme-btn" id="theme-btn" aria-label="Toggle Theme"></button>
+        <div class="theme-dropdown" id="theme-dropdown">
+            <button class="theme-option" data-theme-val="light"><i class="ph ph-sun" style="font-size: 16px;"></i> Light</button>
+            <button class="theme-option" data-theme-val="dark"><i class="ph ph-moon" style="font-size: 16px;"></i> Dark</button>
+            <button class="theme-option" data-theme-val="system"><i class="ph ph-desktop" style="font-size: 16px;"></i> System</button>
+        </div>
+    </div>
+
+    <!-- Floating Navigation Bar -->
+    <nav class="floating-nav">
+        <a href="https://mmssb.github.io" class="nav-item" title="Home"><i class="ph ph-house"></i></a>
+        <a href="javascript:void(0)" class="nav-item active" title="Tools"><i class="ph ph-wrench"></i></a>
+    </nav>
+
+    <!-- FULL WIDTH MAIN CONTAINER -->
+    <div class="app-container">
+        <div class="layout-wrapper" style="padding-top: 40px;">
+            
+            <div class="content-area" style="max-width: 1000px; margin: 0 auto;">
+                
+                <!-- NEW HERO SECTION WITH LOGO -->
+                <div class="hero-section">
+                    <div class="hero-logo-bg">
+                        <img src="assets/images/mmslogo.PNG" alt="MMS Logo Watermark">
+                    </div>
+                    <div class="hero-content">
+                        <!-- Main Logo Integration -->
+                        <div class="hero-main-logo">
+                            <img src="assets/images/mmslogo.PNG" alt="MMS Logo">
+                        </div>
+                        
+                        <h2 class="hero-title">Software & Tools</h2>
+                        <p class="hero-subtitle">Download and activate essential software, web applications, and powerful creative tools built and curated by MMS.</p>
+                    </div>
+                </div>
+
+                <!-- STORE GRID -->
+                <div class="store-grid">
+                    
+                    <!-- App: ArtCraft -->
+                    <div class="link-card app-card highlight" onclick="openApp(this)"
+                         data-title="ArtCraft Suite"
+                         data-icon="download/assets/images/artcraft-icon blue.svg"
+                         data-pad="false"
+                         data-version="v4.2"
+                         data-size="Native Rust App"
+                         data-os="Open Source"
+                         data-developer="Brandon Thomas"
+                         data-updated="Oct 2026"
+                         data-website="https://getartcraft.com/"
+                         data-screenshots="download/assets/images/artcraft1show.png, download/assets/images/artcraft2show.png, download/assets/images/hero1.webp"
+                         data-longdesc="ArtCraft is a free, open-source suite of seven creative applications built in Rust by developer Brandon Thomas using AI assistance. It is designed as a subscription-free alternative to the Adobe Creative Cloud.\n\nEnjoy pure native Rust performance and take full ownership of your creative tools without any hidden cancellation fees."
+                         data-command=""
+                         data-download="https://drive.google.com/drive/folders/1MwcbvMvfDeGEboif3JeUL5oiKZplbRiP?usp=drive_link"
+                         data-visit="https://getartcraft.com/apps">
+                        <div class="app-card-left">
+                            <div class="app-icon-box">
+                                <img src="download/assets/images/artcraft-icon blue.svg" alt="ArtCraft">
+                            </div>
+                            <div class="app-info">
+                                <span class="app-title">ArtCraft Suite</span>
+                                <span class="app-meta">Adobe Suite Alternative</span>
+                            </div>
+                        </div>
+                        <div class="app-card-right"><i class="ph-bold ph-caret-right"></i></div>
+                    </div>
+                    <!-- App: ArtCraft -->
+                    <!-- <div class="link-card app-card highlight" onclick="openApp(this)"
+                         data-title="ArtCraft Suite"
+                         data-icon="https://getartcraft.com/wp-content/uploads/2023/10/cropped-favicon-192x192.png"
+                         data-pad="false"
+                         data-version="v4.2"
+                         data-size="Native Rust App"
+                         data-os="Open Source"
+                         data-developer="Brandon Thomas"
+                         data-updated="Oct 2026"
+                         data-website="https://getartcraft.com/"
+                         data-screenshots="https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=800&q=80, https://images.unsplash.com/photo-1542744094-24638ea0b3b5?auto=format&fit=crop&w=800&q=80"
+                         data-longdesc="ArtCraft is a free, open-source suite of seven creative applications built in Rust by developer Brandon Thomas using AI assistance. It is designed as a subscription-free alternative to the Adobe Creative Cloud.
+
+Enjoy pure native Rust performance and take full ownership of your creative tools without any hidden cancellation fees."
+                         data-command=""
+                         data-download="https://getartcraft.com/download"
+                         data-visit="https://getartcraft.com/">
+                        <div class="app-card-left">
+                            <div class="app-icon-box">
+                                <img src="https://getartcraft.com/wp-content/uploads/2023/10/cropped-favicon-192x192.png" alt="ArtCraft">
+                            </div>
+                            <div class="app-info">
+                                <span class="app-title">ArtCraft Suite</span>
+                                <span class="app-meta">Adobe Suite Alternative</span>
+                            </div>
+                        </div>
+                        <div class="app-card-right"><i class="ph-bold ph-caret-right"></i></div>
+                    </div> -->
+
+                    <!-- App: MAS -->
+                    <div class="link-card app-card highlight" onclick="openApp(this)"
+                         data-title="MAS Activator"
+                         data-icon="download/assets/images/maslogo.png"
+                         data-pad="true"
+                         data-version="v3.12"
+                         data-size="477 KB"
+                         data-os="Windows"
+                         data-developer="Massgrave"
+                         data-updated="Aug 2026"
+                         data-website="https://massgrave.dev"
+                         data-screenshots="download/assets/images/mas.png, download/assets/images/mas2.png, download/assets/images/mas3.png, download/assets/images/mas4.png"
+                         data-longdesc="Microsoft Activation Scripts (MAS). A Windows and Office activator using HWID, Ohook, KMS38, and Online KMS activation methods.\n\nOpen source and clean from antivirus false positives. You can download the zip file or simply paste the provided command into your Windows PowerShell as an administrator."
+                         data-command="irm https://massgrave.dev/get | iex"
+                         data-download="download/files/Microsoft-Activation-Scripts-3.12.zip">
+                        <div class="app-card-left">
+                            <div class="app-icon-box pad-img">
+                                <img src="download/assets/images/maslogo.png" alt="MAS">
+                            </div>
+                            <div class="app-info">
+                                <span class="app-title">MAS 3.12</span>
+                                <span class="app-meta">Activate Windows & Office</span>
+                            </div>
+                        </div>
+                        <div class="app-card-right"><i class="ph-bold ph-caret-right"></i></div>
+                    </div>
+
+                    <!-- App: Magic Text -->
+                    <div class="link-card app-card" onclick="openApp(this)"
+                         data-title="Magic Text Scanner"
+                         data-icon="download/assets/images/icon1.png"
+                         data-pad="false"
+                         data-version="v2.1"
+                         data-size="105 MB"
+                         data-os="Web Application"
+                         data-developer="MMS"
+                         data-updated="Jan 2026"
+                         data-website="https://mmssb.github.io/magictext.com"
+                         data-longdesc="An advanced OCR scanner built by MMS. Extract text from images instantly with high accuracy. Supports multiple languages.\n\nUpload any image or document screenshot, and Magic Text will convert it into editable, copyable text. Perfect for students, developers, and data entry workflows."
+                         data-command=""
+                         data-screenshots="download/assets/images/magictext.png, download/assets/images/magictext1.png"
+                         data-visit="https://mmssb.github.io/magictext.com">
+                        <div class="app-card-left">
+                            <div class="app-icon-box">
+                                <img src="download/assets/images/icon1.png" alt="Magic Text">
+                            </div>
+                            <div class="app-info">
+                                <span class="app-title">Magic Text</span>
+                                <span class="app-meta" style="color: var(--accent-color);">Made by MMS</span>
+                            </div>
+                        </div>
+                        <div class="app-card-right"><i class="ph-bold ph-caret-right"></i></div>
+                    </div>
+
+                    <!-- App: Office 365 -->
+                    <div class="link-card app-card " onclick="openApp(this)"
+                         data-title="Office 365 Activator"
+                         data-icon="download/assets/images/365-active.png"
+                         data-pad="false"
+                         data-version="v1.0"
+                         data-size="1.06 KB"
+                         data-os="Windows"
+                         data-developer="MMS Curation"
+                         data-updated="Oct 2026"
+                         data-website=""
+                         data-longdesc="Easily activate your Microsoft Office 365 with this batch tool. Completely offline and safe to use. Simply run the script as an administrator.\n\nFeatures:\n• Fast & offline activation\n• No installation required\n• Lightweight script"
+                         data-command=""
+                         data-download="download/files/activator365.rar">
+                        <div class="app-card-left">
+                            <div class="app-icon-box">
+                                <img src="download/assets/images/365-active.png" alt="Office 365">
+                            </div>
+                            <div class="app-info">
+                                <span class="app-title">Office 365</span>
+                                <span class="app-meta">activator365.rar • 1.06KB</span>
+                            </div>
+                        </div>
+                        <div class="app-card-right"><i class="ph-bold ph-caret-right"></i></div>
+                    </div>
+
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ============================================== -->
+    <!-- APP STORE MODAL / BOTTOM SHEET -->
+    <!-- ============================================== -->
+    <div class="sheet-overlay" id="sheet-overlay" onclick="closeAppModal()"></div>
+    <div class="bottom-sheet app-modal" id="bottom-sheet">
+        <button class="close-btn" onclick="closeAppModal()" aria-label="Close menu">
+            <i class="ri-close-line" style="font-size: 24px;"></i>
+        </button>
+        <div class="drag-handle-area" id="drag-handle"><div class="drag-handle"></div></div>
+        
+        <div class="sheet-content">
+            
+            <div class="app-modal-header">
+                <div class="app-modal-hero-top">
+                    <div class="app-modal-icon" id="m-icon-box">
+                        <img id="m-icon" src="" alt="Icon">
+                    </div>
+                    <div class="app-modal-title-wrapper">
+                        <h2 class="app-modal-title" id="m-title">App Title</h2>
+                        <div class="app-modal-badges">
+                            <span class="app-badge" id="m-version">v1.0</span>
+                            <span class="app-badge" id="m-size">10 MB</span>
+                            <span class="app-badge" id="m-os">Windows</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="app-header-actions" id="app-actions-container">
+                    <!-- Buttons are injected here -->
+                </div>
+            </div>
+
+            <div id="dl-error" style="display:none; color: #fb003f; font-size:14px; font-weight: 600; margin-bottom: 24px; text-align: center; padding: 12px; background: rgba(251,0,63,0.1); border-radius: 12px;">
+                <i class="fa-solid fa-triangle-exclamation"></i> <span id="dl-error-txt"></span>
+            </div>
+
+            <!-- Enhanced Screenshots Gallery with Desktop Navigation -->
+            <div id="m-screenshots-wrapper" style="display: none;">
+                <h3 class="section-heading">Preview</h3>
+                <div class="gallery-container-wrapper">
+                    <!-- Scroll Left Button -->
+                    <button class="gallery-nav-btn prev-btn" onclick="scrollScreenshots(-1)">
+                        <i class="ph-bold ph-caret-left"></i>
+                    </button>
+                    
+                    <div class="screenshots-gallery" id="m-screenshots-container">
+                        <!-- Images injected via JS -->
+                    </div>
+
+                    <!-- Scroll Right Button -->
+                    <button class="gallery-nav-btn next-btn" onclick="scrollScreenshots(1)">
+                        <i class="ph-bold ph-caret-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <h3 class="section-heading">Description</h3>
+            <p class="app-modal-desc" id="m-desc">Description goes here...</p>
+
+            <div class="cli-block" id="m-cli-block">
+                <div class="cli-header">
+                    <div><i class="fa-solid fa-terminal" style="margin-right: 6px;"></i> Terminal Command</div>
+                    <button class="cli-copy-btn" onclick="copyCLI(this)">
+                        <i class="ph-bold ph-copy"></i> <span>Copy</span>
+                    </button>
+                </div>
+                <div class="cli-code" id="m-cli-code"></div>
+            </div>
+
+            <h3 class="section-heading">Information</h3>
+            <div class="about-section">
+                <div class="about-row">
+                    <span class="about-label">Developer</span>
+                    <span class="about-value" id="m-dev">MMS</span>
+                </div>
+                <div class="about-row">
+                    <span class="about-label">Last Updated</span>
+                    <span class="about-value" id="m-updated">2026</span>
+                </div>
+                <div class="about-row" id="m-website-row" style="display: none;">
+                    <span class="about-label">Website</span>
+                    <span class="about-value"><a href="#" id="m-website" target="_blank">Visit Official Site</a></span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- FULL SCREEN IMAGE PREVIEW MODAL -->
+    <div class="img-preview-overlay" id="img-preview-overlay" onclick="closeImagePreview()">
+        <button class="img-preview-close" onclick="closeImagePreview()">
+            <i class="ri-close-line"></i>
+        </button>
+        <img src="" alt="Preview" class="img-preview-img" id="img-preview-target" onclick="event.stopPropagation()">
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        function openApp(cardElement) {
+            const ds = cardElement.dataset;
+
+            // Populate Basic Info
+            document.getElementById('m-title').innerText = ds.title;
+            document.getElementById('m-version').innerText = ds.version;
+            document.getElementById('m-size').innerText = ds.size;
+            document.getElementById('m-os').innerText = ds.os;
+            
+            // Fix \n in description
+            let longDesc = ds.longdesc || ds.desc || "No description provided.";
+            longDesc = longDesc.replace(/\\n/g, '\n'); // Convert literal \n strings to actual line breaks
+            document.getElementById('m-desc').innerText = longDesc;
+            
+            const iconBox = document.getElementById('m-icon-box');
+            document.getElementById('m-icon').src = ds.icon;
+            if (ds.pad === 'true') iconBox.classList.add('pad-img');
+            else iconBox.classList.remove('pad-img');
+
+            // --- Dynamic Buttons Logic ---
+            const actionsContainer = document.getElementById('app-actions-container');
+            actionsContainer.innerHTML = ''; 
+            
+            if (ds.download) {
+                actionsContainer.innerHTML += `
+                    <button id="btn-download" class="btn primary" onclick="processAction('${ds.download}', 'download', this)">
+                        <i class="fa-solid fa-cloud-arrow-down"></i> <span>Download</span>
+                    </button>
+                `;
+            }
+            if (ds.visit) {
+                actionsContainer.innerHTML += `
+                    <button id="btn-visit" class="btn" style="background: var(--glass-bg); border: 1px solid var(--glass-border);" onclick="processAction('${ds.visit}', 'visit', this)">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> <span>Visit Site</span>
+                    </button>
+                `;
+            }
+
+            // Screenshots handling
+            const ssWrapper = document.getElementById('m-screenshots-wrapper');
+            const ssContainer = document.getElementById('m-screenshots-container');
+            ssContainer.innerHTML = ''; 
+            
+            if (ds.screenshots && ds.screenshots.trim() !== '') {
+                const urls = ds.screenshots.split(',');
+                urls.forEach(url => {
+                    const cleanUrl = url.trim();
+                    const div = document.createElement('div');
+                    div.className = 'screenshot-item';
+                    div.onclick = () => openImagePreview(cleanUrl); 
+                    
+                    const img = document.createElement('img');
+                    img.src = cleanUrl;
+                    img.onerror = () => { img.src = 'assets/images/back.jpeg'; }; 
+                    
+                    div.appendChild(img);
+                    ssContainer.appendChild(div);
+                });
+                ssWrapper.style.display = 'block';
+            } else {
+                ssWrapper.style.display = 'none';
+            }
+
+            // About Info handling
+            document.getElementById('m-dev').innerText = ds.developer || "Unknown";
+            document.getElementById('m-updated').innerText = ds.updated || "N/A";
+            
+            const webRow = document.getElementById('m-website-row');
+            const webLink = document.getElementById('m-website');
+            if (ds.website && ds.website.trim() !== '') {
+                webLink.href = ds.website;
+                webRow.style.display = 'flex';
+            } else {
+                webRow.style.display = 'none';
+            }
+
+            // CLI Block handling
+            const cliBlock = document.getElementById('m-cli-block');
+            if (ds.command && ds.command.trim() !== "") {
+                cliBlock.style.display = 'block';
+                document.getElementById('m-cli-code').innerText = ds.command;
+                const copyBtn = document.querySelector('.cli-copy-btn');
+                copyBtn.innerHTML = '<i class="ph-bold ph-copy"></i> <span>Copy</span>';
+                copyBtn.style.borderColor = 'rgba(255,255,255,0.2)';
+            } else {
+                cliBlock.style.display = 'none';
+            }
+
+            document.getElementById('dl-error').style.display = 'none';
+
+            // Override and force full screen on Mobile
+            document.getElementById('bottom-sheet').classList.add('mobile-fullscreen-active');
+            
+            if (typeof window.openSheet === 'function') {
+                window.openSheet('full');
+            }
+        }
+        
+        // Custom close function
+        function closeAppModal() {
+            document.getElementById('bottom-sheet').classList.remove('mobile-fullscreen-active');
+            if (typeof window.closeSheet === 'function') {
+                window.closeSheet();
+            }
+        }
+
+        // Desktop Gallery Scroll Buttons
+        function scrollScreenshots(direction) {
+            const container = document.getElementById('m-screenshots-container');
+            const scrollAmount = (320 + 16) * direction;
+            container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
+
+        // Terminal Copy
+        function copyCLI(btnElement) {
+            const codeText = document.getElementById('m-cli-code').innerText;
+            navigator.clipboard.writeText(codeText).then(() => {
+                btnElement.innerHTML = '<i class="ph-bold ph-check"></i> <span>Copied!</span>';
+                btnElement.style.borderColor = '#10b981';
+                setTimeout(() => {
+                    btnElement.innerHTML = '<i class="ph-bold ph-copy"></i> <span>Copy</span>';
+                    btnElement.style.borderColor = 'rgba(255,255,255,0.2)';
+                }, 2000);
+            });
+        }
+
+        // Image Preview
+        function openImagePreview(src) {
+            const overlay = document.getElementById('img-preview-overlay');
+            const imgTarget = document.getElementById('img-preview-target');
+            imgTarget.src = src;
+            overlay.classList.add('active');
+        }
+        function closeImagePreview() {
+            document.getElementById('img-preview-overlay').classList.remove('active');
+        }
+
+        // --- Multi-Action Processor ---
+        function processAction(url, type, btnElement) {
+            if (btnElement.disabled) return;
+            
+            const originalHTML = btnElement.innerHTML;
+            const errBox = document.getElementById('dl-error');
+            const errTxt = document.getElementById('dl-error-txt');
+
+            btnElement.disabled = true;
+            errBox.style.display = 'none';
+            btnElement.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> <span>${type === 'visit' ? 'Redirecting...' : 'Preparing...'}</span>`;
+
+            setTimeout(() => {
+                if (url === 'error') {
+                    btnElement.innerHTML = `<i class="fa-solid fa-xmark"></i> <span>Failed</span>`;
+                    errTxt.innerText = 'The requested action is currently unavailable.';
+                    errBox.style.display = 'block';
+                    
+                    setTimeout(() => { 
+                        btnElement.disabled = false; 
+                        btnElement.innerHTML = originalHTML; 
+                    }, 3000);
+                    return;
+                }
+
+                btnElement.innerHTML = `<i class="fa-solid fa-check"></i> <span>${type === 'visit' ? 'Opening...' : 'Downloading...'}</span>`;
+                
+                const a = document.createElement('a');
+                a.href = url;
+                if (type === 'download') a.download = '';
+                a.target = '_blank';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                setTimeout(() => {
+                    btnElement.disabled = false;
+                    btnElement.innerHTML = originalHTML;
+                }, 2500);
+
+            }, 1000); 
+        }
+    </script>
+    
+    <script src="assets/js/script.js"></script>
+</body>
+</html>
